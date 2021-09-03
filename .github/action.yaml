@@ -1,0 +1,5 @@
+name: "WASI Rust Action"
+description: "Use devcontainer Dockerfile"
+runs:
+  using: "docker"
+  image: "../docker/Dockerfile"

@@ -1,0 +1,10 @@
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: CI/CD
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build and run
+        uses: ./.github/

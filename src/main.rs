@@ -26,9 +26,11 @@ pub fn main() -> Result<()> {
     let mut linker = Linker::<Context>::new(&engine);
     wasmtime_wasi::add_to_linker(&mut linker, |cx| &mut cx.wasi)?;
 
-    // As above, instantiation always happens within a `Store`. This means to
-    // actually instantiate with our `Linker` we'll need to create a store. Note
-    // that we're also initializing the store with our custom data here too.
+    // Instantiation always happens within a `Store`. This means to
+    // actually instantiate with our `Linker` we'll need to create a store.
+    // A Store is a collection of WebAssembly instances and host-defined state.
+    //
+    // Note that we're also initializing the store with our custom data here too.
     //
     // Afterwards we use the `linker` to create the instance.
     let mut store = Store::new(&engine, Context {
