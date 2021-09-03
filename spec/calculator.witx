@@ -1,1 +1,0 @@
-add: function(lh: s32, rh: s32) -> s32
