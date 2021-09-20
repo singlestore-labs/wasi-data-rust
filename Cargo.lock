@@ -1568,7 +1568,7 @@ dependencies = [
 [[package]]
 name = "witx-bindgen-gen-core"
 version = "0.1.0"
-source = "git+https://github.com/bytecodealliance/witx-bindgen.git#aeec84a351f3dcf65fb349d22ba981a4908664ef"
+source = "git+https://github.com/bytecodealliance/witx-bindgen#aeec84a351f3dcf65fb349d22ba981a4908664ef"
 dependencies = [
  "anyhow",
  "witx2",
@@ -1577,7 +1577,7 @@ dependencies = [
 [[package]]
 name = "witx-bindgen-gen-rust"
 version = "0.1.0"
-source = "git+https://github.com/bytecodealliance/witx-bindgen.git#aeec84a351f3dcf65fb349d22ba981a4908664ef"
+source = "git+https://github.com/bytecodealliance/witx-bindgen#aeec84a351f3dcf65fb349d22ba981a4908664ef"
 dependencies = [
  "heck",
  "witx-bindgen-gen-core",
@@ -1586,7 +1586,7 @@ dependencies = [
 [[package]]
 name = "witx-bindgen-gen-wasmtime"
 version = "0.1.0"
-source = "git+https://github.com/bytecodealliance/witx-bindgen.git#aeec84a351f3dcf65fb349d22ba981a4908664ef"
+source = "git+https://github.com/bytecodealliance/witx-bindgen#aeec84a351f3dcf65fb349d22ba981a4908664ef"
 dependencies = [
  "heck",
  "witx-bindgen-gen-core",
@@ -1596,7 +1596,7 @@ dependencies = [
 [[package]]
 name = "witx-bindgen-wasmtime"
 version = "0.1.0"
-source = "git+https://github.com/bytecodealliance/witx-bindgen.git#aeec84a351f3dcf65fb349d22ba981a4908664ef"
+source = "git+https://github.com/bytecodealliance/witx-bindgen#aeec84a351f3dcf65fb349d22ba981a4908664ef"
 dependencies = [
  "anyhow",
  "bitflags",
@@ -1608,7 +1608,7 @@ dependencies = [
 [[package]]
 name = "witx-bindgen-wasmtime-impl"
 version = "0.1.0"
-source = "git+https://github.com/bytecodealliance/witx-bindgen.git#aeec84a351f3dcf65fb349d22ba981a4908664ef"
+source = "git+https://github.com/bytecodealliance/witx-bindgen#aeec84a351f3dcf65fb349d22ba981a4908664ef"
 dependencies = [
  "proc-macro2",
  "syn",
@@ -1619,7 +1619,7 @@ dependencies = [
 [[package]]
 name = "witx2"
 version = "0.1.0"
-source = "git+https://github.com/bytecodealliance/witx-bindgen.git#aeec84a351f3dcf65fb349d22ba981a4908664ef"
+source = "git+https://github.com/bytecodealliance/witx-bindgen#aeec84a351f3dcf65fb349d22ba981a4908664ef"
 dependencies = [
  "anyhow",
  "id-arena",

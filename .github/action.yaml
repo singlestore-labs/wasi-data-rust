@@ -3,3 +3,10 @@ description: "Use devcontainer Dockerfile"
 runs:
   using: "docker"
   image: "../docker/Dockerfile"
+  steps:
+    - run: cargo install cargo-wasi
+      shell: bash
+    - run: cargo wasi build --manifest-path component/Cargo.toml
+      shell: bash
+    - run: cargo run
+      shell: bash
