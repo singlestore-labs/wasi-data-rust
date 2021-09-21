@@ -35,9 +35,6 @@ This uses the Wasmtime runtime to provide WASI functionality as a guest program.
 ## Walkthrough
 
 ```bash
-cd component
-cargo build
-cd ..
-cargo run
-# got: 3
+$ cargo run
+got: 3
 ```

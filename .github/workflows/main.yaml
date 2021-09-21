@@ -6,5 +6,14 @@ jobs:
     name: CI/CD
     steps:
       - uses: actions/checkout@v2
-      - name: Build and run
-        uses: ./.github/
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          target: wasm32-wasi
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: run
+
+      - uses: Swatinem/rust-cache@v1
