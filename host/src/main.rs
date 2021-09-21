@@ -1,10 +1,7 @@
 use anyhow::Result;
 use wasmtime::*;
 
-witx_bindgen_wasmtime::import!("spec/component.witx");
-
-#[allow(unused)]
-use component::*;
+witx_bindgen_wasmtime::import!("witx/component.witx");
 
 pub struct Context {
     wasi: wasmtime_wasi::WasiCtx,
@@ -18,7 +15,7 @@ pub fn main() -> Result<()> {
     let engine = Engine::new(&config)?;
 
     // Compile the component wasm module
-    let module = Module::from_file(&engine, "component/target/wasm32-wasi/debug/component.wasm")?;
+    let module = Module::from_file(&engine, "target/wasm32-wasi/debug/component.wasm")?;
 
     // Add the component's WASI/witx exports to the linker
     // For host-provided functions it's recommended to use a `Linker` which does
@@ -33,11 +30,14 @@ pub fn main() -> Result<()> {
     // Note that we're also initializing the store with our custom data here too.
     //
     // Afterwards we use the `linker` to create the instance.
-    let mut store = Store::new(&engine, Context {
-        wasi: wasmtime_wasi::sync::WasiCtxBuilder::new()
-            .inherit_stdio()
-            .build()
-    });
+    let mut store = Store::new(
+        &engine,
+        Context {
+            wasi: wasmtime_wasi::sync::WasiCtxBuilder::new()
+                .inherit_stdio()
+                .build(),
+        },
+    );
 
     // The `Instance` gives us access to various exported functions and items,
     // which we access here to pull out our exported function and run it.

@@ -1,10 +1,4 @@
-[package]
-name = "wasi-witx-sandbox"
-version = "0.1.0"
-edition = "2018"
+cargo-features = ["per-package-target"]
 
-[dependencies]
-wasmtime = "0.29.0"
-wasmtime-wasi = "0.29.0"
-anyhow = "1.0"
-witx-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/witx-bindgen" }
+[workspace]
+members = ["host", "component"]

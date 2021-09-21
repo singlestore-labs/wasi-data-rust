@@ -6,5 +6,9 @@ jobs:
     name: CI/CD
     steps:
       - uses: actions/checkout@v2
-      - name: Build and run
-        uses: ./.github/
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+      - uses: actions-rs/cargo@v1
+        with:
+          command: run

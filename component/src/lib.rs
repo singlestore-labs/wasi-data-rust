@@ -1,4 +1,4 @@
-witx_bindgen_rust::export!("../spec/component.witx");
+witx_bindgen_rust::export!("witx/component.witx");
 
 struct Component;
 
@@ -7,7 +7,7 @@ impl component::Component for Component {
         lh + rh
     }
 
-    fn moo(s : String) -> String {
+    fn moo(s: String) -> String {
         format!("{}{}", s, "moo")
     }
 }
