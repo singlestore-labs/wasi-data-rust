@@ -1,10 +1,34 @@
 use anyhow::Result;
 use wasmtime::*;
 
-witx_bindgen_wasmtime::import!("witx/component.witx");
+witx_bindgen_wasmtime::import!("witx/host.witx");
+witx_bindgen_wasmtime::export!("witx/component.witx");
+
+#[derive(Debug)]
+struct MyRow {
+    id: i32,
+}
+
+#[derive(Debug, Default)]
+struct HostImpl;
+
+impl host::Host for HostImpl {
+    type Row = MyRow;
+
+    fn next(&mut self) -> MyRow {
+        MyRow { id: 0 }
+    }
+    fn emit(&mut self, r: &MyRow) {
+        println!("emit: row(id: {:?})", r.id);
+    }
+}
+
+type ContextImports = (HostImpl, host::HostTables<HostImpl>);
 
 pub struct Context {
     wasi: wasmtime_wasi::WasiCtx,
+    imports: ContextImports,
+    exports: component::ComponentData,
 }
 
 pub fn main() -> Result<()> {
@@ -22,6 +46,7 @@ pub fn main() -> Result<()> {
     // name-based resolution of functions.
     let mut linker = Linker::<Context>::new(&engine);
     wasmtime_wasi::add_to_linker(&mut linker, |cx| &mut cx.wasi)?;
+    host::add_host_to_linker(&mut linker, |cx| (&mut cx.imports.0, &mut cx.imports.1))?;
 
     // Instantiation always happens within a `Store`. This means to
     // actually instantiate with our `Linker` we'll need to create a store.
@@ -36,22 +61,15 @@ pub fn main() -> Result<()> {
             wasi: wasmtime_wasi::sync::WasiCtxBuilder::new()
                 .inherit_stdio()
                 .build(),
+            imports: ContextImports::default(),
+            exports: component::ComponentData::default(),
         },
     );
 
-    // The `Instance` gives us access to various exported functions and items,
-    // which we access here to pull out our exported function and run it.
-    let instance = linker.instantiate(&mut store, &module)?;
+    let (exports, _instance) =
+        component::Component::instantiate(&mut store, &module, &mut linker, |cx| &mut cx.exports)?;
 
-    // There's a few ways we can call the `answer` `Func` value. The easiest
-    // is to statically assert its signature with `typed` (in this case
-    // asserting it takes no arguments and returns one i32) and then call it.
-    let add = instance.get_typed_func::<(i32, i32), i32, _>(&mut store, "consume_add")?;
-
-    // And finally we can call our function! Note that the error propagation
-    // with `?` is done to handle the case where the wasm function traps.
-    let out = add.call(&mut store, (1, 2))?;
-    println!("got: {}", out);
+    exports.run(&mut store)?;
 
     Ok(())
 }

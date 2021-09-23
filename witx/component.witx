@@ -1,3 +1,1 @@
-consume_add: function(lh: s32, rh: s32) -> s32
-
-moo: function(s: string) -> string
+run: function()
