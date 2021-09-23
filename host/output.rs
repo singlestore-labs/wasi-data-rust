@@ -179,30 +179,63 @@ pub mod component {
     }
 }
 const _: &str = "run: function()";
-struct HostImpl;
-impl host::Host for HostImpl {
-    type Row = u32;
-    fn next(&mut self) -> Self::Row {
-        10
+struct MyRow {
+    id: i32,
+}
+#[automatically_derived]
+#[allow(unused_qualifications)]
+impl ::core::fmt::Debug for MyRow {
+    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
+        match *self {
+            MyRow { id: ref __self_0_0 } => {
+                let debug_trait_builder = &mut ::core::fmt::Formatter::debug_struct(f, "MyRow");
+                let _ = ::core::fmt::DebugStruct::field(debug_trait_builder, "id", &&(*__self_0_0));
+                ::core::fmt::DebugStruct::finish(debug_trait_builder)
+            }
+        }
     }
-    fn emit(&mut self, r: &Self::Row) {
+}
+struct HostImpl;
+#[automatically_derived]
+#[allow(unused_qualifications)]
+impl ::core::fmt::Debug for HostImpl {
+    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
+        match *self {
+            HostImpl => ::core::fmt::Formatter::write_str(f, "HostImpl"),
+        }
+    }
+}
+#[automatically_derived]
+#[allow(unused_qualifications)]
+impl ::core::default::Default for HostImpl {
+    #[inline]
+    fn default() -> HostImpl {
+        HostImpl {}
+    }
+}
+impl host::Host for HostImpl {
+    type Row = MyRow;
+    fn next(&mut self) -> MyRow {
+        MyRow { id: 0 }
+    }
+    fn emit(&mut self, r: &MyRow) {
         {
             ::std::io::_print(
-                match match (&r,) {
-                    (arg0,) => [::core::fmt::ArgumentV1::new(
-                        arg0,
-                        ::core::fmt::Display::fmt,
-                    )],
+                match match (&r.id,) {
+                    (arg0,) => [::core::fmt::ArgumentV1::new(arg0, ::core::fmt::Debug::fmt)],
                 } {
-                    ref args => unsafe { ::core::fmt::Arguments::new_v1(&["emit: ", "\n"], args) },
+                    ref args => unsafe {
+                        ::core::fmt::Arguments::new_v1(&["emit: row(id: ", ")\n"], args)
+                    },
                 },
             );
         };
     }
 }
+type ContextImports = (HostImpl, host::HostTables<HostImpl>);
 pub struct Context {
     wasi: wasmtime_wasi::WasiCtx,
-    imports: (HostImpl, host::HostTables<HostImpl>),
+    imports: ContextImports,
     exports: component::ComponentData,
 }
 pub fn main() -> Result<()> {
@@ -220,7 +253,7 @@ pub fn main() -> Result<()> {
             wasi: wasmtime_wasi::sync::WasiCtxBuilder::new()
                 .inherit_stdio()
                 .build(),
-            imports: (HostImpl, host::HostTables::default()),
+            imports: ContextImports::default(),
             exports: component::ComponentData::default(),
         },
     );
