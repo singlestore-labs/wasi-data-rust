@@ -9,6 +9,7 @@ impl component::Component for Component {
         println!("{:?}", r);
         host::emit(&r);
     }
+
     fn process(r: component::Input) -> Vec<component::Output> {
         let mut out = Vec::new();
         out.push(component::Output {

@@ -16,7 +16,7 @@ impl host::Host for HostImpl {
     type Row = MyRow;
 
     fn next(&mut self) -> MyRow {
-        MyRow { id: 0 }
+        MyRow { id: 123 }
     }
     fn emit(&mut self, r: &MyRow) {
         println!("emit: row(id: {:?})", r.id);
@@ -36,6 +36,7 @@ pub fn main() -> Result<()> {
     let mut config = Config::new();
     config.wasm_module_linking(true);
     config.cache_config_load_default()?;
+    config.debug_info(true);
     let engine = Engine::new(&config)?;
 
     // Compile the component wasm module
