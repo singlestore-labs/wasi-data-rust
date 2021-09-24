@@ -7,15 +7,15 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'wasi-witx-sandbox'",
+            "name": "Debug executable 'host'",
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=wasi-witx-sandbox",
-                    "--package=wasi-witx-sandbox"
+                    "--bin=host",
+                    "--package=host"
                 ],
                 "filter": {
-                    "name": "wasi-witx-sandbox",
+                    "name": "host",
                     "kind": "bin"
                 }
             },
@@ -25,16 +25,16 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in executable 'wasi-witx-sandbox'",
+            "name": "Debug unit tests in executable 'host'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
-                    "--bin=wasi-witx-sandbox",
-                    "--package=wasi-witx-sandbox"
+                    "--bin=host",
+                    "--package=host"
                 ],
                 "filter": {
-                    "name": "wasi-witx-sandbox",
+                    "name": "host",
                     "kind": "bin"
                 }
             },

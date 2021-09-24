@@ -1,3 +1,12 @@
-consume_add: function(lh: s32, rh: s32) -> s32
+run: function()
 
-moo: function(s: string) -> string
+record Input {
+    body: string
+}
+
+record Output {
+    tag: string,
+    translated: string
+}
+
+process: function(r: Input) -> list<Output>
