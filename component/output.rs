@@ -4,15 +4,106 @@ use std::prelude::rust_2018::*;
 #[macro_use]
 extern crate std;
 mod component {
+    pub struct Input {
+        pub body: String,
+    }
+    #[automatically_derived]
+    #[allow(unused_qualifications)]
+    impl ::core::clone::Clone for Input {
+        #[inline]
+        fn clone(&self) -> Input {
+            match *self {
+                Input {
+                    body: ref __self_0_0,
+                } => Input {
+                    body: ::core::clone::Clone::clone(&(*__self_0_0)),
+                },
+            }
+        }
+    }
+    impl std::fmt::Debug for Input {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            f.debug_struct("Input").field("body", &self.body).finish()
+        }
+    }
+    pub struct Output {
+        pub tag: String,
+        pub translated: String,
+    }
+    #[automatically_derived]
+    #[allow(unused_qualifications)]
+    impl ::core::clone::Clone for Output {
+        #[inline]
+        fn clone(&self) -> Output {
+            match *self {
+                Output {
+                    tag: ref __self_0_0,
+                    translated: ref __self_0_1,
+                } => Output {
+                    tag: ::core::clone::Clone::clone(&(*__self_0_0)),
+                    translated: ::core::clone::Clone::clone(&(*__self_0_1)),
+                },
+            }
+        }
+    }
+    impl std::fmt::Debug for Output {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            f.debug_struct("Output")
+                .field("tag", &self.tag)
+                .field("translated", &self.translated)
+                .finish()
+        }
+    }
     #[export_name = "run"]
     unsafe extern "C" fn __witx_bindgen_run() {
         <super::Component as Component>::run();
     }
+    #[export_name = "process"]
+    unsafe extern "C" fn __witx_bindgen_process(arg0: i32, arg1: i32) -> i32 {
+        let len0 = arg1 as usize;
+        let result1 = <super::Component as Component>::process(Input {
+            body: String::from_utf8(Vec::from_raw_parts(arg0 as *mut _, len0, len0)).unwrap(),
+        });
+        let vec5 = result1;
+        let len5 = vec5.len() as i32;
+        let layout5 = core::alloc::Layout::from_size_align_unchecked(vec5.len() * 16, 4);
+        let result5 = std::alloc::alloc(layout5);
+        if result5.is_null() {
+            std::alloc::handle_alloc_error(layout5);
+        }
+        for (i, e) in vec5.into_iter().enumerate() {
+            let base = result5 as i32 + (i as i32) * 16;
+            {
+                let Output {
+                    tag: tag2,
+                    translated: translated2,
+                } = e;
+                let vec3 = (tag2.into_bytes()).into_boxed_slice();
+                let ptr3 = vec3.as_ptr() as i32;
+                let len3 = vec3.len() as i32;
+                core::mem::forget(vec3);
+                *((base + 4) as *mut i32) = len3;
+                *((base + 0) as *mut i32) = ptr3;
+                let vec4 = (translated2.into_bytes()).into_boxed_slice();
+                let ptr4 = vec4.as_ptr() as i32;
+                let len4 = vec4.len() as i32;
+                core::mem::forget(vec4);
+                *((base + 12) as *mut i32) = len4;
+                *((base + 8) as *mut i32) = ptr4;
+            }
+        }
+        let ptr6 = RET_AREA.as_mut_ptr() as i32;
+        *((ptr6 + 8) as *mut i32) = len5;
+        *((ptr6 + 0) as *mut i32) = result5 as i32;
+        ptr6
+    }
     pub trait Component {
         fn run();
+        fn process(r: Input) -> Vec<Output>;
     }
+    static mut RET_AREA: [i64; 2] = [0; 2];
 }
-const _: &str = "run: function()";
+const _ : & str = "run: function()\n\nrecord Input {\n    body: string\n}\n\nrecord Output {\n    tag: string,\n    translated: string\n}\n\nprocess: function(r: Input) -> list<Output>" ;
 mod host {
     /// ## scalar types
     /// decimal types: f32 | f64
@@ -115,5 +206,13 @@ impl component::Component for Component {
             );
         };
         host::emit(&r);
+    }
+    fn process(r: component::Input) -> Vec<component::Output> {
+        let mut out = Vec::new();
+        out.push(component::Output {
+            tag: "english".to_string(),
+            translated: r.body,
+        });
+        out
     }
 }

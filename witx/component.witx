@@ -1,1 +1,12 @@
 run: function()
+
+record Input {
+    body: string
+}
+
+record Output {
+    tag: string,
+    translated: string
+}
+
+process: function(r: Input) -> list<Output>
