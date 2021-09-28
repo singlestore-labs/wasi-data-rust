@@ -1,33 +1,32 @@
 use anyhow::Result;
 use wasmtime::*;
 
-witx_bindgen_wasmtime::import!("witx/host.witx");
-witx_bindgen_wasmtime::export!("witx/component.witx");
+witx_bindgen_wasmtime::export!({
+    src["component"]: "
+        record SplitInput {
+            s: string,
+            delimiter: string,
+        }
 
-#[derive(Debug)]
-struct MyRow {
-    id: i32,
-}
+        record SplitOutput {
+            c: string,
+        }
 
-#[derive(Debug, Default)]
-struct HostImpl;
+        split: function(input: SplitInput) -> list<SplitOutput>
 
-impl host::Host for HostImpl {
-    type Row = MyRow;
+        record User {
+            id: s64,
+            username: string,
+            email: string,
+            phone: string,
+        }
 
-    fn next(&mut self) -> MyRow {
-        MyRow { id: 123 }
-    }
-    fn emit(&mut self, r: &MyRow) {
-        println!("emit: row(id: {:?})", r.id);
-    }
-}
-
-type ContextImports = (HostImpl, host::HostTables<HostImpl>);
+        filter_out_bad_users: function(input: User) -> list<User>
+    "
+});
 
 pub struct Context {
     wasi: wasmtime_wasi::WasiCtx,
-    imports: ContextImports,
     exports: component::ComponentData,
 }
 
@@ -47,7 +46,6 @@ pub fn main() -> Result<()> {
     // name-based resolution of functions.
     let mut linker = Linker::<Context>::new(&engine);
     wasmtime_wasi::add_to_linker(&mut linker, |cx| &mut cx.wasi)?;
-    host::add_host_to_linker(&mut linker, |cx| (&mut cx.imports.0, &mut cx.imports.1))?;
 
     // Instantiation always happens within a `Store`. This means to
     // actually instantiate with our `Linker` we'll need to create a store.
@@ -62,7 +60,6 @@ pub fn main() -> Result<()> {
             wasi: wasmtime_wasi::sync::WasiCtxBuilder::new()
                 .inherit_stdio()
                 .build(),
-            imports: ContextImports::default(),
             exports: component::ComponentData::default(),
         },
     );
@@ -70,7 +67,50 @@ pub fn main() -> Result<()> {
     let (exports, _instance) =
         component::Component::instantiate(&mut store, &module, &mut linker, |cx| &mut cx.exports)?;
 
-    exports.run(&mut store)?;
+    let input = component::SplitInput {
+        s: "hello, how, are, you",
+        delimiter: ", ",
+    };
+    let out = exports.split(&mut store, input)?;
+
+    println!("got: {:?}", out);
+
+    let users = vec![
+        component::UserParam {
+            id: 1,
+            username: "alice",
+            email: "foo@example.com",
+            phone: "555-123-4567",
+        },
+        component::UserParam {
+            id: 2,
+            username: "lucy",
+            email: "lucy@singlestore.com",
+            phone: "555-123-4567",
+        },
+        component::UserParam {
+            id: 3,
+            username: "jones",
+            email: "jones@example.net",
+            phone: "555-123-4567",
+        },
+        component::UserParam {
+            id: 4,
+            username: "bob",
+            email: "bob@gmail.com",
+            phone: "555-123-4567",
+        },
+    ];
+
+    let mut good_users = vec![];
+    for user in users {
+        let result = exports.filter_out_bad_users(&mut store, user).unwrap();
+        if result.len() > 0 {
+            good_users.extend(result);
+        }
+    }
+
+    println!("got: {:?}", good_users);
 
     Ok(())
 }

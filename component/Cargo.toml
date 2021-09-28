@@ -8,6 +8,7 @@ forced-target = "wasm32-wasi"
 
 [dependencies]
 witx-bindgen-rust = { git = "https://github.com/bytecodealliance/witx-bindgen.git" }
+wasi-iface-gen = { path = "../wasi-iface-gen" }
 
 [lib]
 crate-type = ["cdylib"]
