@@ -45,7 +45,7 @@ pub fn main() -> Result<()> {
     let engine = Engine::new(&config)?;
 
     // Compile the component wasm module
-    let module = Module::from_file(&engine, "target/wasm32-wasi/debug/component.wasm")?;
+    let module = Module::from_file(&engine, "target/wasm32-wasi/debug/example_wasm.wasm")?;
 
     // Add the component's WASI/witx exports to the linker
     // For host-provided functions it's recommended to use a `Linker` which does

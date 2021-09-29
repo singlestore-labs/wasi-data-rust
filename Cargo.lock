@@ -197,14 +197,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
-name = "component"
-version = "0.1.0"
-dependencies = [
- "wasi-iface-gen",
- "witx-bindgen-rust",
-]
-
-[[package]]
 name = "cpp_demangle"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -446,6 +438,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "example-wasm"
+version = "0.1.0"
+dependencies = [
+ "wasi-interface-gen",
+ "witx-bindgen-rust",
+]
+
+[[package]]
+name = "example-wasmtime-host"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "wasmtime",
+ "wasmtime-wasi",
+ "witx-bindgen-wasmtime",
+]
+
+[[package]]
 name = "fallible-iterator"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -543,16 +553,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "62b467343b94ba476dcb2500d242dadbb39557df889310ac77c5d99100aaac33"
 dependencies = [
  "libc",
-]
-
-[[package]]
-name = "host"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "wasmtime",
- "wasmtime-wasi",
- "witx-bindgen-wasmtime",
 ]
 
 [[package]]
@@ -1223,7 +1223,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "wasi-iface-gen"
+name = "wasi-interface-gen"
 version = "0.1.0"
 dependencies = [
  "quote",

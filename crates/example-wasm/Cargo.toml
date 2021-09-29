@@ -1,14 +1,14 @@
 cargo-features = ["per-package-target"]
 
 [package]
-name = "component"
+name = "example-wasm"
 version = "0.1.0"
 edition = "2018"
 forced-target = "wasm32-wasi"
 
 [dependencies]
 witx-bindgen-rust = { git = "https://github.com/bytecodealliance/witx-bindgen.git" }
-wasi-iface-gen = { path = "../wasi-iface-gen" }
+wasi-interface-gen = { path = "../wasi-interface-gen" }
 
 [lib]
 crate-type = ["cdylib"]

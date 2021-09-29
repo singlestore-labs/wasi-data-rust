@@ -1,5 +1,4 @@
-extern crate wasi_iface_gen;
-use wasi_iface_gen::*;
+use wasi_interface_gen::wasi_interface;
 
 #[wasi_interface]
 mod foo {

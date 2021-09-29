@@ -1,4 +1,4 @@
-use wasi_iface_gen::wasi_interface;
+use wasi_interface_gen::wasi_interface;
 
 #[wasi_interface]
 mod component {
