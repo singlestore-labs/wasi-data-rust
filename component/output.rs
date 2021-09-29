@@ -7,6 +7,12 @@ use wasi_iface_gen::wasi_interface;
 #[allow(unused_imports)]
 use witx_bindgen_rust;
 mod component {
+    struct SimpleValue {
+        i: i64,
+    }
+    fn double(input: SimpleValue) -> Vec<SimpleValue> {
+        <[_]>::into_vec(box [SimpleValue { i: input.i * 2 }])
+    }
     struct SplitInput {
         s: String,
         delimiter: String,
@@ -37,6 +43,18 @@ mod component {
         } else {
             <[_]>::into_vec(box [input])
         }
+    }
+    #[export_name = "double"]
+    unsafe extern "C" fn __witx_bindgen_double(arg0: i64) -> i32 {
+        let result0 = double(SimpleValue { i: arg0 });
+        let vec1 = (result0).into_boxed_slice();
+        let ptr1 = vec1.as_ptr() as i32;
+        let len1 = vec1.len() as i32;
+        core::mem::forget(vec1);
+        let ptr2 = RET_AREA.as_mut_ptr() as i32;
+        *((ptr2 + 8) as *mut i32) = len1;
+        *((ptr2 + 0) as *mut i32) = ptr1;
+        ptr2
     }
     #[export_name = "split"]
     unsafe extern "C" fn __witx_bindgen_split(arg0: i32, arg1: i32, arg2: i32, arg3: i32) -> i32 {

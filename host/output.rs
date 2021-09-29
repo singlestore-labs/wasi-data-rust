@@ -8,6 +8,42 @@ use wasmtime::*;
 pub mod component {
     #[allow(unused_imports)]
     use witx_bindgen_wasmtime::{wasmtime, anyhow};
+    #[repr(C)]
+    pub struct SimpleValue {
+        pub i: i64,
+    }
+    #[automatically_derived]
+    #[allow(unused_qualifications)]
+    impl ::core::marker::Copy for SimpleValue {}
+    #[automatically_derived]
+    #[allow(unused_qualifications)]
+    impl ::core::clone::Clone for SimpleValue {
+        #[inline]
+        fn clone(&self) -> SimpleValue {
+            {
+                let _: ::core::clone::AssertParamIsClone<i64>;
+                *self
+            }
+        }
+    }
+    impl std::fmt::Debug for SimpleValue {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            f.debug_struct("SimpleValue").field("i", &self.i).finish()
+        }
+    }
+    impl witx_bindgen_wasmtime::Endian for SimpleValue {
+        fn into_le(self) -> Self {
+            Self {
+                i: self.i.into_le(),
+            }
+        }
+        fn from_le(self) -> Self {
+            Self {
+                i: self.i.from_le(),
+            }
+        }
+    }
+    unsafe impl witx_bindgen_wasmtime::AllBytesValid for SimpleValue {}
     pub struct SplitInput<'a> {
         pub s: &'a str,
         pub delimiter: &'a str,
@@ -146,6 +182,7 @@ pub mod component {
         get_state: Box<dyn Fn(&mut T) -> &mut ComponentData + Send + Sync>,
         canonical_abi_free: wasmtime::TypedFunc<(i32, i32, i32), ()>,
         canonical_abi_realloc: wasmtime::TypedFunc<(i32, i32, i32, i32), i32>,
+        double: wasmtime::TypedFunc<(i64,), (i32,)>,
         filter_out_bad_users: wasmtime::TypedFunc<(i64, i32, i32, i32, i32, i32, i32), (i32,)>,
         memory: wasmtime::Memory,
         split: wasmtime::TypedFunc<(i32, i32, i32, i32), (i32,)>,
@@ -208,6 +245,7 @@ pub mod component {
                 &mut store,
                 "canonical_abi_realloc",
             )?;
+            let double = instance.get_typed_func::<(i64,), (i32,), _>(&mut store, "double")?;
             let filter_out_bad_users = instance
                 .get_typed_func::<(i64, i32, i32, i32, i32, i32, i32), (i32,), _>(
                     &mut store,
@@ -221,19 +259,44 @@ pub mod component {
             Ok(Component {
                 canonical_abi_free,
                 canonical_abi_realloc,
+                double,
                 filter_out_bad_users,
                 memory,
                 split,
                 get_state: Box::new(get_state),
             })
         }
+        pub fn double(
+            &self,
+            mut caller: impl wasmtime::AsContextMut<Data = T>,
+            input: SimpleValue,
+        ) -> Result<Vec<SimpleValue>, wasmtime::Trap> {
+            let func_canonical_abi_free = &self.canonical_abi_free;
+            let memory = &self.memory;
+            let SimpleValue { i: i0 } = input;
+            let (result1_0,) = self
+                .double
+                .call(&mut caller, (witx_bindgen_wasmtime::rt::as_i64(i0),))?;
+            let load2 = memory.data_mut(&mut caller).load::<i32>(result1_0 + 0)?;
+            let load3 = memory.data_mut(&mut caller).load::<i32>(result1_0 + 8)?;
+            let ptr4 = load2;
+            let len4 = load3;
+            Ok(copy_slice(
+                &mut caller,
+                memory,
+                func_canonical_abi_free,
+                ptr4,
+                len4,
+                8,
+            )?)
+        }
         pub fn split(
             &self,
             mut caller: impl wasmtime::AsContextMut<Data = T>,
             input: SplitInput<'_>,
         ) -> Result<Vec<SplitOutput>, wasmtime::Trap> {
-            let func_canonical_abi_free = &self.canonical_abi_free;
             let func_canonical_abi_realloc = &self.canonical_abi_realloc;
+            let func_canonical_abi_free = &self.canonical_abi_free;
             let memory = &self.memory;
             let SplitInput {
                 s: s0,
@@ -288,8 +351,8 @@ pub mod component {
             mut caller: impl wasmtime::AsContextMut<Data = T>,
             input: UserParam<'_>,
         ) -> Result<Vec<UserResult>, wasmtime::Trap> {
-            let func_canonical_abi_realloc = &self.canonical_abi_realloc;
             let func_canonical_abi_free = &self.canonical_abi_free;
+            let func_canonical_abi_realloc = &self.canonical_abi_realloc;
             let memory = &self.memory;
             let UserParam {
                 id: id0,
@@ -411,6 +474,16 @@ pub fn main() -> Result<()> {
     );
     let (exports, _instance) =
         component::Component::instantiate(&mut store, &module, &mut linker, |cx| &mut cx.exports)?;
+    let input = component::SimpleValue { i: 10 };
+    let out = exports.double(&mut store, input)?;
+    {
+        ::std::io::_print(::core::fmt::Arguments::new_v1(
+            &["got: ", "\n"],
+            &match (&out,) {
+                (arg0,) => [::core::fmt::ArgumentV1::new(arg0, ::core::fmt::Debug::fmt)],
+            },
+        ));
+    };
     let input = component::SplitInput {
         s: "hello, how, are, you",
         delimiter: ", ",
