@@ -1,0 +1,20 @@
+[package]
+name = "wasi-iface-gen"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+syn = { version = "1.0", features = [
+    "full",
+    "printing",
+    "visit",
+    "extra-traits",
+] }
+quote = "1.0"
+witx-bindgen-rust = { git = "https://github.com/bytecodealliance/witx-bindgen.git" }
+witx-bindgen-gen-rust-wasm = { git = "https://github.com/bytecodealliance/witx-bindgen.git" }
+witx2 = { git = "https://github.com/bytecodealliance/witx-bindgen.git" }
+witx-bindgen-gen-core = { git = "https://github.com/bytecodealliance/witx-bindgen.git" }
+
+[lib]
+proc-macro = true

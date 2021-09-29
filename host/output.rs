@@ -5,94 +5,165 @@ use std::prelude::rust_2018::*;
 extern crate std;
 use anyhow::Result;
 use wasmtime::*;
-pub mod host {
-    #[allow(unused_imports)]
-    use witx_bindgen_wasmtime::{wasmtime, anyhow};
-    pub trait Host: Sized {
-        type Row: std::fmt::Debug;
-        fn next(&mut self) -> Self::Row;
-        fn emit(&mut self, r: &Self::Row);
-        fn drop_row(&mut self, state: Self::Row) {
-            drop(state);
-        }
-    }
-    pub struct HostTables<T: Host> {
-        pub(crate) row_table: witx_bindgen_wasmtime::Table<T::Row>,
-    }
-    impl<T: Host> Default for HostTables<T> {
-        fn default() -> Self {
-            Self {
-                row_table: Default::default(),
-            }
-        }
-    }
-    pub fn add_host_to_linker<T, U>(
-        linker: &mut wasmtime::Linker<T>,
-        get: impl Fn(&mut T) -> (&mut U, &mut HostTables<U>) + Send + Sync + Copy + 'static,
-    ) -> anyhow::Result<()>
-    where
-        U: Host,
-    {
-        linker.func_wrap(
-            "host",
-            "next",
-            move |mut caller: wasmtime::Caller<'_, T>| {
-                let host = get(caller.data_mut());
-                let (host, _tables) = host;
-                let result0 = host.next();
-                Ok(_tables.row_table.insert(result0) as i32)
-            },
-        )?;
-        linker.func_wrap(
-            "host",
-            "emit",
-            move |mut caller: wasmtime::Caller<'_, T>, arg0: i32| {
-                let host = get(caller.data_mut());
-                let (host, _tables) = host;
-                let param0 = _tables
-                    .row_table
-                    .get((arg0) as u32)
-                    .ok_or_else(|| wasmtime::Trap::new("invalid handle index"))?;
-                host.emit(param0);
-                Ok(())
-            },
-        )?;
-        linker.func_wrap(
-            "canonical_abi",
-            "resource_drop_row",
-            move |mut caller: wasmtime::Caller<'_, T>, handle: u32| {
-                let (host, tables) = get(caller.data_mut());
-                let handle = tables.row_table.remove(handle).map_err(|e| {
-                    wasmtime::Trap::new({
-                        let res = ::alloc::fmt::format(
-                            match match (&e,) {
-                                (arg0,) => [::core::fmt::ArgumentV1::new(
-                                    arg0,
-                                    ::core::fmt::Display::fmt,
-                                )],
-                            } {
-                                ref args => unsafe {
-                                    ::core::fmt::Arguments::new_v1(
-                                        &["failed to remove handle: "],
-                                        args,
-                                    )
-                                },
-                            },
-                        );
-                        res
-                    })
-                })?;
-                host.drop_row(handle);
-                Ok(())
-            },
-        )?;
-        Ok(())
-    }
-}
-const _ : & str = "// ## scalar types\n// decimal types: f32 | f64\n// integer types: s8 | u8 | s16 | u16 | s32 | u32 | s64 | u64\n// other types: char\n\n// ## structured types\n// variant NAME { TAG(TYPE), TAG(TYPE), ... }\n// record NAME { FIELD: TYPE, FIELD: TYPE, ... }\n// list<TYPE>\n\n// ## default type aliases\n// string\n// bool\n// tuple<TYPE, TYPE, ...>\n// flags NAME { FIELD, FIELD, ... }\n// enum NAME { FIELD, FIELD, ... }\n// union NAME { TYPE, TYPE, ... }\n// option<TYPE>\n// expected<TYPE, TYPE>\n\n// ## other\n// function(FIELD: TYPE, FIELD: TYPE, ...) [-> TYPE]\n// resource NAME {\n//   [static] NAME: function(FIELD: TYPE, FIELD: TYPE, ...) [-> TYPE]\n//   NAME: function(FIELD: TYPE, FIELD: TYPE, ...) [-> TYPE]\n// }\n// type NAME = TYPE\n\nresource Row\n\nnext: function() -> Row\nemit: function(r: Row)" ;
 pub mod component {
     #[allow(unused_imports)]
     use witx_bindgen_wasmtime::{wasmtime, anyhow};
+    #[repr(C)]
+    pub struct SimpleValue {
+        pub i: i64,
+    }
+    #[automatically_derived]
+    #[allow(unused_qualifications)]
+    impl ::core::marker::Copy for SimpleValue {}
+    #[automatically_derived]
+    #[allow(unused_qualifications)]
+    impl ::core::clone::Clone for SimpleValue {
+        #[inline]
+        fn clone(&self) -> SimpleValue {
+            {
+                let _: ::core::clone::AssertParamIsClone<i64>;
+                *self
+            }
+        }
+    }
+    impl std::fmt::Debug for SimpleValue {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            f.debug_struct("SimpleValue").field("i", &self.i).finish()
+        }
+    }
+    impl witx_bindgen_wasmtime::Endian for SimpleValue {
+        fn into_le(self) -> Self {
+            Self {
+                i: self.i.into_le(),
+            }
+        }
+        fn from_le(self) -> Self {
+            Self {
+                i: self.i.from_le(),
+            }
+        }
+    }
+    unsafe impl witx_bindgen_wasmtime::AllBytesValid for SimpleValue {}
+    pub struct SplitInput<'a> {
+        pub s: &'a str,
+        pub delimiter: &'a str,
+    }
+    #[automatically_derived]
+    #[allow(unused_qualifications)]
+    impl<'a> ::core::clone::Clone for SplitInput<'a> {
+        #[inline]
+        fn clone(&self) -> SplitInput<'a> {
+            match *self {
+                SplitInput {
+                    s: ref __self_0_0,
+                    delimiter: ref __self_0_1,
+                } => SplitInput {
+                    s: ::core::clone::Clone::clone(&(*__self_0_0)),
+                    delimiter: ::core::clone::Clone::clone(&(*__self_0_1)),
+                },
+            }
+        }
+    }
+    impl<'a> std::fmt::Debug for SplitInput<'a> {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            f.debug_struct("SplitInput")
+                .field("s", &self.s)
+                .field("delimiter", &self.delimiter)
+                .finish()
+        }
+    }
+    pub struct SplitOutput {
+        pub c: String,
+    }
+    #[automatically_derived]
+    #[allow(unused_qualifications)]
+    impl ::core::clone::Clone for SplitOutput {
+        #[inline]
+        fn clone(&self) -> SplitOutput {
+            match *self {
+                SplitOutput { c: ref __self_0_0 } => SplitOutput {
+                    c: ::core::clone::Clone::clone(&(*__self_0_0)),
+                },
+            }
+        }
+    }
+    impl std::fmt::Debug for SplitOutput {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            f.debug_struct("SplitOutput").field("c", &self.c).finish()
+        }
+    }
+    pub struct UserParam<'a> {
+        pub id: i64,
+        pub username: &'a str,
+        pub email: &'a str,
+        pub phone: &'a str,
+    }
+    #[automatically_derived]
+    #[allow(unused_qualifications)]
+    impl<'a> ::core::clone::Clone for UserParam<'a> {
+        #[inline]
+        fn clone(&self) -> UserParam<'a> {
+            match *self {
+                UserParam {
+                    id: ref __self_0_0,
+                    username: ref __self_0_1,
+                    email: ref __self_0_2,
+                    phone: ref __self_0_3,
+                } => UserParam {
+                    id: ::core::clone::Clone::clone(&(*__self_0_0)),
+                    username: ::core::clone::Clone::clone(&(*__self_0_1)),
+                    email: ::core::clone::Clone::clone(&(*__self_0_2)),
+                    phone: ::core::clone::Clone::clone(&(*__self_0_3)),
+                },
+            }
+        }
+    }
+    impl<'a> std::fmt::Debug for UserParam<'a> {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            f.debug_struct("UserParam")
+                .field("id", &self.id)
+                .field("username", &self.username)
+                .field("email", &self.email)
+                .field("phone", &self.phone)
+                .finish()
+        }
+    }
+    pub struct UserResult {
+        pub id: i64,
+        pub username: String,
+        pub email: String,
+        pub phone: String,
+    }
+    #[automatically_derived]
+    #[allow(unused_qualifications)]
+    impl ::core::clone::Clone for UserResult {
+        #[inline]
+        fn clone(&self) -> UserResult {
+            match *self {
+                UserResult {
+                    id: ref __self_0_0,
+                    username: ref __self_0_1,
+                    email: ref __self_0_2,
+                    phone: ref __self_0_3,
+                } => UserResult {
+                    id: ::core::clone::Clone::clone(&(*__self_0_0)),
+                    username: ::core::clone::Clone::clone(&(*__self_0_1)),
+                    email: ::core::clone::Clone::clone(&(*__self_0_2)),
+                    phone: ::core::clone::Clone::clone(&(*__self_0_3)),
+                },
+            }
+        }
+    }
+    impl std::fmt::Debug for UserResult {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            f.debug_struct("UserResult")
+                .field("id", &self.id)
+                .field("username", &self.username)
+                .field("email", &self.email)
+                .field("phone", &self.phone)
+                .finish()
+        }
+    }
     /// Auxiliary data associated with the wasm exports.
     ///
     /// This is required to be stored within the data of a
@@ -109,7 +180,12 @@ pub mod component {
     }
     pub struct Component<T> {
         get_state: Box<dyn Fn(&mut T) -> &mut ComponentData + Send + Sync>,
-        run: wasmtime::TypedFunc<(), ()>,
+        canonical_abi_free: wasmtime::TypedFunc<(i32, i32, i32), ()>,
+        canonical_abi_realloc: wasmtime::TypedFunc<(i32, i32, i32, i32), i32>,
+        double: wasmtime::TypedFunc<(i64,), (i32,)>,
+        filter_out_bad_users: wasmtime::TypedFunc<(i64, i32, i32, i32, i32, i32, i32), (i32,)>,
+        memory: wasmtime::Memory,
+        split: wasmtime::TypedFunc<(i32, i32, i32, i32), (i32,)>,
     }
     impl<T> Component<T> {
         #[allow(unused_variables)]
@@ -163,102 +239,304 @@ pub mod component {
             get_state: impl Fn(&mut T) -> &mut ComponentData + Send + Sync + Copy + 'static,
         ) -> anyhow::Result<Self> {
             let mut store = store.as_context_mut();
-            let run = instance.get_typed_func::<(), (), _>(&mut store, "run")?;
+            let canonical_abi_free = instance
+                .get_typed_func::<(i32, i32, i32), (), _>(&mut store, "canonical_abi_free")?;
+            let canonical_abi_realloc = instance.get_typed_func::<(i32, i32, i32, i32), i32, _>(
+                &mut store,
+                "canonical_abi_realloc",
+            )?;
+            let double = instance.get_typed_func::<(i64,), (i32,), _>(&mut store, "double")?;
+            let filter_out_bad_users = instance
+                .get_typed_func::<(i64, i32, i32, i32, i32, i32, i32), (i32,), _>(
+                    &mut store,
+                    "filter_out_bad_users",
+                )?;
+            let memory = instance
+                .get_memory(&mut store, "memory")
+                .ok_or_else(|| ::anyhow::private::new_adhoc("`memory` export not a memory"))?;
+            let split =
+                instance.get_typed_func::<(i32, i32, i32, i32), (i32,), _>(&mut store, "split")?;
             Ok(Component {
-                run,
+                canonical_abi_free,
+                canonical_abi_realloc,
+                double,
+                filter_out_bad_users,
+                memory,
+                split,
                 get_state: Box::new(get_state),
             })
         }
-        pub fn run(
+        pub fn double(
             &self,
             mut caller: impl wasmtime::AsContextMut<Data = T>,
-        ) -> Result<(), wasmtime::Trap> {
-            self.run.call(&mut caller, ())?;
-            Ok(())
+            input: SimpleValue,
+        ) -> Result<Vec<SimpleValue>, wasmtime::Trap> {
+            let func_canonical_abi_free = &self.canonical_abi_free;
+            let memory = &self.memory;
+            let SimpleValue { i: i0 } = input;
+            let (result1_0,) = self
+                .double
+                .call(&mut caller, (witx_bindgen_wasmtime::rt::as_i64(i0),))?;
+            let load2 = memory.data_mut(&mut caller).load::<i32>(result1_0 + 0)?;
+            let load3 = memory.data_mut(&mut caller).load::<i32>(result1_0 + 8)?;
+            let ptr4 = load2;
+            let len4 = load3;
+            Ok(copy_slice(
+                &mut caller,
+                memory,
+                func_canonical_abi_free,
+                ptr4,
+                len4,
+                8,
+            )?)
         }
-    }
-}
-const _: &str = "run: function()";
-struct MyRow {
-    id: i32,
-}
-#[automatically_derived]
-#[allow(unused_qualifications)]
-impl ::core::fmt::Debug for MyRow {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        match *self {
-            MyRow { id: ref __self_0_0 } => {
-                let debug_trait_builder = &mut ::core::fmt::Formatter::debug_struct(f, "MyRow");
-                let _ = ::core::fmt::DebugStruct::field(debug_trait_builder, "id", &&(*__self_0_0));
-                ::core::fmt::DebugStruct::finish(debug_trait_builder)
+        pub fn split(
+            &self,
+            mut caller: impl wasmtime::AsContextMut<Data = T>,
+            input: SplitInput<'_>,
+        ) -> Result<Vec<SplitOutput>, wasmtime::Trap> {
+            let func_canonical_abi_realloc = &self.canonical_abi_realloc;
+            let func_canonical_abi_free = &self.canonical_abi_free;
+            let memory = &self.memory;
+            let SplitInput {
+                s: s0,
+                delimiter: delimiter0,
+            } = input;
+            let vec1 = s0;
+            let ptr1 =
+                func_canonical_abi_realloc.call(&mut caller, (0, 0, 1, (vec1.len() as i32) * 1))?;
+            memory
+                .data_mut(&mut caller)
+                .store_many(ptr1, vec1.as_ref())?;
+            let vec2 = delimiter0;
+            let ptr2 =
+                func_canonical_abi_realloc.call(&mut caller, (0, 0, 1, (vec2.len() as i32) * 1))?;
+            memory
+                .data_mut(&mut caller)
+                .store_many(ptr2, vec2.as_ref())?;
+            let (result3_0,) = self.split.call(
+                &mut caller,
+                (ptr1, vec1.len() as i32, ptr2, vec2.len() as i32),
+            )?;
+            let load4 = memory.data_mut(&mut caller).load::<i32>(result3_0 + 0)?;
+            let load5 = memory.data_mut(&mut caller).load::<i32>(result3_0 + 8)?;
+            let len9 = load5;
+            let base9 = load4;
+            let mut result9 = Vec::with_capacity(len9 as usize);
+            for i in 0..len9 {
+                let base = base9 + i * 8;
+                result9.push({
+                    let load6 = memory.data_mut(&mut caller).load::<i32>(base + 0)?;
+                    let load7 = memory.data_mut(&mut caller).load::<i32>(base + 4)?;
+                    let ptr8 = load6;
+                    let len8 = load7;
+                    SplitOutput {
+                        c: String::from_utf8(copy_slice(
+                            &mut caller,
+                            memory,
+                            func_canonical_abi_free,
+                            ptr8,
+                            len8,
+                            1,
+                        )?)
+                        .map_err(|_| wasmtime::Trap::new("invalid utf-8"))?,
+                    }
+                });
             }
+            func_canonical_abi_free.call(&mut caller, (base9, len9 * 8, 4))?;
+            Ok(result9)
+        }
+        pub fn filter_out_bad_users(
+            &self,
+            mut caller: impl wasmtime::AsContextMut<Data = T>,
+            input: UserParam<'_>,
+        ) -> Result<Vec<UserResult>, wasmtime::Trap> {
+            let func_canonical_abi_free = &self.canonical_abi_free;
+            let func_canonical_abi_realloc = &self.canonical_abi_realloc;
+            let memory = &self.memory;
+            let UserParam {
+                id: id0,
+                username: username0,
+                email: email0,
+                phone: phone0,
+            } = input;
+            let vec1 = username0;
+            let ptr1 =
+                func_canonical_abi_realloc.call(&mut caller, (0, 0, 1, (vec1.len() as i32) * 1))?;
+            memory
+                .data_mut(&mut caller)
+                .store_many(ptr1, vec1.as_ref())?;
+            let vec2 = email0;
+            let ptr2 =
+                func_canonical_abi_realloc.call(&mut caller, (0, 0, 1, (vec2.len() as i32) * 1))?;
+            memory
+                .data_mut(&mut caller)
+                .store_many(ptr2, vec2.as_ref())?;
+            let vec3 = phone0;
+            let ptr3 =
+                func_canonical_abi_realloc.call(&mut caller, (0, 0, 1, (vec3.len() as i32) * 1))?;
+            memory
+                .data_mut(&mut caller)
+                .store_many(ptr3, vec3.as_ref())?;
+            let (result4_0,) = self.filter_out_bad_users.call(
+                &mut caller,
+                (
+                    witx_bindgen_wasmtime::rt::as_i64(id0),
+                    ptr1,
+                    vec1.len() as i32,
+                    ptr2,
+                    vec2.len() as i32,
+                    ptr3,
+                    vec3.len() as i32,
+                ),
+            )?;
+            let load5 = memory.data_mut(&mut caller).load::<i32>(result4_0 + 0)?;
+            let load6 = memory.data_mut(&mut caller).load::<i32>(result4_0 + 8)?;
+            let len17 = load6;
+            let base17 = load5;
+            let mut result17 = Vec::with_capacity(len17 as usize);
+            for i in 0..len17 {
+                let base = base17 + i * 32;
+                result17.push({
+                    let load7 = memory.data_mut(&mut caller).load::<i64>(base + 0)?;
+                    let load8 = memory.data_mut(&mut caller).load::<i32>(base + 8)?;
+                    let load9 = memory.data_mut(&mut caller).load::<i32>(base + 12)?;
+                    let ptr10 = load8;
+                    let len10 = load9;
+                    let load11 = memory.data_mut(&mut caller).load::<i32>(base + 16)?;
+                    let load12 = memory.data_mut(&mut caller).load::<i32>(base + 20)?;
+                    let ptr13 = load11;
+                    let len13 = load12;
+                    let load14 = memory.data_mut(&mut caller).load::<i32>(base + 24)?;
+                    let load15 = memory.data_mut(&mut caller).load::<i32>(base + 28)?;
+                    let ptr16 = load14;
+                    let len16 = load15;
+                    UserResult {
+                        id: load7,
+                        username: String::from_utf8(copy_slice(
+                            &mut caller,
+                            memory,
+                            func_canonical_abi_free,
+                            ptr10,
+                            len10,
+                            1,
+                        )?)
+                        .map_err(|_| wasmtime::Trap::new("invalid utf-8"))?,
+                        email: String::from_utf8(copy_slice(
+                            &mut caller,
+                            memory,
+                            func_canonical_abi_free,
+                            ptr13,
+                            len13,
+                            1,
+                        )?)
+                        .map_err(|_| wasmtime::Trap::new("invalid utf-8"))?,
+                        phone: String::from_utf8(copy_slice(
+                            &mut caller,
+                            memory,
+                            func_canonical_abi_free,
+                            ptr16,
+                            len16,
+                            1,
+                        )?)
+                        .map_err(|_| wasmtime::Trap::new("invalid utf-8"))?,
+                    }
+                });
+            }
+            func_canonical_abi_free.call(&mut caller, (base17, len17 * 32, 8))?;
+            Ok(result17)
         }
     }
+    use witx_bindgen_wasmtime::rt::RawMem;
+    use witx_bindgen_wasmtime::rt::copy_slice;
 }
-struct HostImpl;
-#[automatically_derived]
-#[allow(unused_qualifications)]
-impl ::core::fmt::Debug for HostImpl {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        match *self {
-            HostImpl => ::core::fmt::Formatter::write_str(f, "HostImpl"),
-        }
-    }
-}
-#[automatically_derived]
-#[allow(unused_qualifications)]
-impl ::core::default::Default for HostImpl {
-    #[inline]
-    fn default() -> HostImpl {
-        HostImpl {}
-    }
-}
-impl host::Host for HostImpl {
-    type Row = MyRow;
-    fn next(&mut self) -> MyRow {
-        MyRow { id: 0 }
-    }
-    fn emit(&mut self, r: &MyRow) {
-        {
-            ::std::io::_print(
-                match match (&r.id,) {
-                    (arg0,) => [::core::fmt::ArgumentV1::new(arg0, ::core::fmt::Debug::fmt)],
-                } {
-                    ref args => unsafe {
-                        ::core::fmt::Arguments::new_v1(&["emit: row(id: ", ")\n"], args)
-                    },
-                },
-            );
-        };
-    }
-}
-type ContextImports = (HostImpl, host::HostTables<HostImpl>);
 pub struct Context {
     wasi: wasmtime_wasi::WasiCtx,
-    imports: ContextImports,
     exports: component::ComponentData,
 }
 pub fn main() -> Result<()> {
     let mut config = Config::new();
     config.wasm_module_linking(true);
     config.cache_config_load_default()?;
+    config.debug_info(true);
     let engine = Engine::new(&config)?;
     let module = Module::from_file(&engine, "target/wasm32-wasi/debug/component.wasm")?;
     let mut linker = Linker::<Context>::new(&engine);
     wasmtime_wasi::add_to_linker(&mut linker, |cx| &mut cx.wasi)?;
-    host::add_host_to_linker(&mut linker, |cx| (&mut cx.imports.0, &mut cx.imports.1))?;
     let mut store = Store::new(
         &engine,
         Context {
             wasi: wasmtime_wasi::sync::WasiCtxBuilder::new()
                 .inherit_stdio()
                 .build(),
-            imports: ContextImports::default(),
             exports: component::ComponentData::default(),
         },
     );
     let (exports, _instance) =
         component::Component::instantiate(&mut store, &module, &mut linker, |cx| &mut cx.exports)?;
-    exports.run(&mut store)?;
+    let input = component::SimpleValue { i: 10 };
+    let out = exports.double(&mut store, input)?;
+    {
+        ::std::io::_print(::core::fmt::Arguments::new_v1(
+            &["got: ", "\n"],
+            &match (&out,) {
+                (arg0,) => [::core::fmt::ArgumentV1::new(arg0, ::core::fmt::Debug::fmt)],
+            },
+        ));
+    };
+    let input = component::SplitInput {
+        s: "hello, how, are, you",
+        delimiter: ", ",
+    };
+    let out = exports.split(&mut store, input)?;
+    {
+        ::std::io::_print(::core::fmt::Arguments::new_v1(
+            &["got: ", "\n"],
+            &match (&out,) {
+                (arg0,) => [::core::fmt::ArgumentV1::new(arg0, ::core::fmt::Debug::fmt)],
+            },
+        ));
+    };
+    let users = <[_]>::into_vec(box [
+        component::UserParam {
+            id: 1,
+            username: "alice",
+            email: "foo@example.com",
+            phone: "555-123-4567",
+        },
+        component::UserParam {
+            id: 2,
+            username: "lucy",
+            email: "lucy@singlestore.com",
+            phone: "555-123-4567",
+        },
+        component::UserParam {
+            id: 3,
+            username: "jones",
+            email: "jones@example.net",
+            phone: "555-123-4567",
+        },
+        component::UserParam {
+            id: 4,
+            username: "bob",
+            email: "bob@gmail.com",
+            phone: "555-123-4567",
+        },
+    ]);
+    let mut good_users = ::alloc::vec::Vec::new();
+    for user in users {
+        let result = exports.filter_out_bad_users(&mut store, user).unwrap();
+        if result.len() > 0 {
+            good_users.extend(result);
+        }
+    }
+    {
+        ::std::io::_print(::core::fmt::Arguments::new_v1(
+            &["got: ", "\n"],
+            &match (&good_users,) {
+                (arg0,) => [::core::fmt::ArgumentV1::new(arg0, ::core::fmt::Debug::fmt)],
+            },
+        ));
+    };
     Ok(())
 }

@@ -200,6 +200,7 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 name = "component"
 version = "0.1.0"
 dependencies = [
+ "wasi-iface-gen",
  "witx-bindgen-rust",
 ]
 
@@ -1219,6 +1220,18 @@ dependencies = [
  "tracing",
  "wiggle",
  "winapi",
+]
+
+[[package]]
+name = "wasi-iface-gen"
+version = "0.1.0"
+dependencies = [
+ "quote",
+ "syn",
+ "witx-bindgen-gen-core",
+ "witx-bindgen-gen-rust-wasm",
+ "witx-bindgen-rust",
+ "witx2",
 ]
 
 [[package]]

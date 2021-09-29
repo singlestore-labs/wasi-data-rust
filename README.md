@@ -35,6 +35,8 @@ This uses the Wasmtime runtime to provide WASI functionality as a guest program.
 ## Walkthrough
 
 ```bash
-$ cargo run
-got: 3
+cargo run
+got: [SimpleValue { i: 20 }]
+got: [SplitOutput { c: "hello" }, SplitOutput { c: "how" }, SplitOutput { c: "are" }, SplitOutput { c: "you" }]
+got: [UserResult { id: 2, username: "lucy", email: "lucy@singlestore.com", phone: "555-123-4567" }, UserResult { id: 4, username: "bob", email: "bob@gmail.com", phone: "555-123-4567" }]
 ```
