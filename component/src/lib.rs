@@ -5,6 +5,14 @@ use witx_bindgen_rust;
 
 #[wasi_interface]
 mod component {
+    struct SimpleValue {
+        i: i64,
+    }
+
+    fn double(input: SimpleValue) -> Vec<SimpleValue> {
+        vec![SimpleValue { i: input.i * 2 }]
+    }
+
     struct SplitInput {
         s: String,
         delimiter: String,

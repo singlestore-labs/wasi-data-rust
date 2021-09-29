@@ -3,6 +3,12 @@ use wasmtime::*;
 
 witx_bindgen_wasmtime::export!({
     src["component"]: "
+        record SimpleValue {
+            i: s64,
+        }
+
+        double: function(input: SimpleValue) -> list<SimpleValue>
+
         record SplitInput {
             s: string,
             delimiter: string,
@@ -66,6 +72,10 @@ pub fn main() -> Result<()> {
 
     let (exports, _instance) =
         component::Component::instantiate(&mut store, &module, &mut linker, |cx| &mut cx.exports)?;
+
+    let input = component::SimpleValue { i: 10 };
+    let out = exports.double(&mut store, input)?;
+    println!("got: {:?}", out);
 
     let input = component::SplitInput {
         s: "hello, how, are, you",
