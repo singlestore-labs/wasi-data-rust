@@ -9,6 +9,7 @@ syn = { version = "1.0", features = [
     "printing",
     "visit",
     "extra-traits",
+    "parsing",
 ] }
 quote = "1.0"
 witx-bindgen-rust = { git = "https://github.com/bytecodealliance/witx-bindgen.git" }

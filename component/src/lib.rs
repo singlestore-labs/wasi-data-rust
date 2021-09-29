@@ -1,8 +1,5 @@
 use wasi_iface_gen::wasi_interface;
 
-#[allow(unused_imports)]
-use witx_bindgen_rust;
-
 #[wasi_interface]
 mod component {
     struct SimpleValue {

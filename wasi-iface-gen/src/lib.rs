@@ -1,7 +1,7 @@
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::visit::Visit;
-use syn::{parse_macro_input, Item, ItemMod};
+use syn::{parse_macro_input, parse_quote, Item, ItemMod};
 use witx2::abi::Direction;
 use witx2::Interface;
 use witx_bindgen_gen_core::{Files, Generator};
@@ -108,8 +108,14 @@ pub fn wasi_interface(_attr: TokenStream, item: TokenStream) -> TokenStream {
         _ => None,
     });
 
+    let use_witx_bindgen_rust = parse_quote! {
+        #[allow(unused_imports)]
+        use witx_bindgen_rust;
+    };
+
     let mut content = input.content.unwrap();
     content.1.extend(exports);
+    content.1.push(use_witx_bindgen_rust);
     input.content = Some(content);
 
     quote! {
