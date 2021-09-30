@@ -88,5 +88,5 @@ fn vector_unpack(input: &[u8]) -> Vec<f64> {
         let bytes: [u8; 4] = f.try_into().expect("slice with incorrect length");
         output.push(f32::from_le_bytes(bytes) as f64);
     }
-    return output;
+    output
 }

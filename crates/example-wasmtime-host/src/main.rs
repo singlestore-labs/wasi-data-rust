@@ -55,7 +55,7 @@ fn vector_pack(input: &[f32]) -> Vec<u8> {
     for f in input {
         output.extend_from_slice(&f32::to_le_bytes(*f));
     }
-    return output;
+    output
 }
 
 pub fn main() -> Result<()> {

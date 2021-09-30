@@ -30,13 +30,13 @@ fn rust_type_to_wast(ty: &syn::Type) -> String {
                     "list<{}>",
                     type_param
                         .map(|x| rust_type_to_wast(x))
-                        .unwrap_or("any".to_string())
+                        .unwrap_or_else(|| "any".to_string())
                 ),
                 "Option" => format!(
                     "option<{}>",
                     type_param
                         .map(|x| rust_type_to_wast(x))
-                        .unwrap_or("any".to_string())
+                        .unwrap_or_else(|| "any".to_string())
                 ),
                 other => other.into(),
             }
