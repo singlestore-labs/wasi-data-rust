@@ -4,7 +4,7 @@ FROM mcr.microsoft.com/vscode/devcontainers/rust:0-1
 
 RUN rustup default nightly
 RUN rustup target add wasm32-wasi
-RUN rustup component add rustfmt rust-src
+RUN rustup component add rustfmt rust-src clippy
 
 ENV WASMTIME_VERSION=0.30.0
 RUN curl -L https://github.com/bytecodealliance/wasmtime/releases/download/v${WASMTIME_VERSION}/wasmtime-v${WASMTIME_VERSION}-x86_64-linux.tar.xz \
