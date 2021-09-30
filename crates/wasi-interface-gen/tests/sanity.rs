@@ -2,18 +2,18 @@ use wasi_interface_gen::wasi_interface;
 
 #[wasi_interface]
 mod foo {
-    pub struct Input {
-        pub s: String,
-        pub i: i64,
+    struct Input {
+        s: String,
+        i: i64,
     }
 
-    pub struct Output {
-        pub a: i64,
-        pub b: f64,
-        pub c: String,
+    struct Output {
+        a: i64,
+        b: f64,
+        c: String,
     }
 
-    pub fn mapper(input: Input) -> Vec<Output> {
+    fn mapper(input: Input) -> Vec<Output> {
         vec![Output {
             a: input.i * input.i,
             b: (input.i as f64) * 123.234,

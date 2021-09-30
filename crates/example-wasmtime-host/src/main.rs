@@ -29,6 +29,19 @@ witx_bindgen_wasmtime::export!({
         }
 
         filter_out_bad_users: function(input: User) -> list<User>
+
+        record HilbertInput {
+            vec: list<u8>,
+            min_value: f64,
+            max_value: f64,
+            scale: f64,
+        }
+
+        record HilbertOutput {
+            idx: string,
+        }
+
+        hilbert_encode: function(input: HilbertInput) -> list<HilbertOutput>
     "
 });
 
@@ -37,12 +50,20 @@ pub struct Context {
     exports: component::ComponentData,
 }
 
+fn vector_pack(input: &[f32]) -> Vec<u8> {
+    let mut output = Vec::with_capacity(input.len() * 4);
+    for f in input {
+        output.extend_from_slice(&f32::to_le_bytes(*f));
+    }
+    return output;
+}
+
 pub fn main() -> Result<()> {
     // Create an engine with caching enabled
     let mut config = Config::new();
     config.wasm_module_linking(true);
     config.cache_config_load_default()?;
-    config.debug_info(true);
+    // config.debug_info(true);
     let engine = Engine::new(&config)?;
 
     // Compile the component wasm module
@@ -122,6 +143,17 @@ pub fn main() -> Result<()> {
     }
 
     println!("got: {:?}", good_users);
+
+    let data = vec![12.0, -3.0, 5.0, 11.0, 22.0, -5.0, -6.0];
+    let data_packed = vector_pack(&data);
+    let input = component::HilbertInput {
+        vec: &data_packed,
+        min_value: -6.0,
+        max_value: 22.0,
+        scale: 100.0,
+    };
+    let out = exports.hilbert_encode(&mut store, input)?;
+    println!("got: {:?}", out);
 
     Ok(())
 }
