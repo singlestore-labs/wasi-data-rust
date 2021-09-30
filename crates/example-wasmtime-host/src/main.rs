@@ -1,6 +1,7 @@
 use anyhow::Result;
 use wasmtime::*;
 
+#[allow(clippy::needless_question_mark)]
 witx_bindgen_wasmtime::export!({
     src["component"]: "
         record SimpleValue {
@@ -115,7 +116,7 @@ pub fn main() -> Result<()> {
     let mut good_users = vec![];
     for user in users {
         let result = exports.filter_out_bad_users(&mut store, user).unwrap();
-        if result.len() > 0 {
+        if !result.is_empty() {
             good_users.extend(result);
         }
     }
