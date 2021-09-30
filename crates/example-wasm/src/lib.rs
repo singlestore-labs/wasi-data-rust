@@ -7,7 +7,9 @@ mod component {
     }
 
     fn square(input: SimpleValue) -> Vec<SimpleValue> {
-        vec![SimpleValue { i: input.i * input.i }]
+        vec![SimpleValue {
+            i: input.i * input.i,
+        }]
     }
 
     struct SplitInput {
