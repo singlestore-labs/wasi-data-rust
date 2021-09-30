@@ -7,7 +7,7 @@ witx_bindgen_wasmtime::export!({
             i: s64,
         }
 
-        double: function(input: SimpleValue) -> list<SimpleValue>
+        square: function(input: SimpleValue) -> list<SimpleValue>
 
         record SplitInput {
             s: string,
@@ -74,7 +74,7 @@ pub fn main() -> Result<()> {
         component::Component::instantiate(&mut store, &module, &mut linker, |cx| &mut cx.exports)?;
 
     let input = component::SimpleValue { i: 10 };
-    let out = exports.double(&mut store, input)?;
+    let out = exports.square(&mut store, input)?;
     println!("got: {:?}", out);
 
     let input = component::SplitInput {

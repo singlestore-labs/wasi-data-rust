@@ -6,8 +6,8 @@ mod component {
         i: i64,
     }
 
-    fn double(input: SimpleValue) -> Vec<SimpleValue> {
-        vec![SimpleValue { i: input.i * 2 }]
+    fn square(input: SimpleValue) -> Vec<SimpleValue> {
+        vec![SimpleValue { i: input.i * input.i }]
     }
 
     struct SplitInput {
