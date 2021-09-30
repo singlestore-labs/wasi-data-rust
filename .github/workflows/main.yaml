@@ -27,7 +27,6 @@ jobs:
       - uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          args: --all-features
 
       - name: format source code
         uses: actions-rs/cargo@v1

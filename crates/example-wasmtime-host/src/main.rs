@@ -1,7 +1,9 @@
+// need to disable this lint for the export! macro below
+#![allow(clippy::needless_question_mark)]
+
 use anyhow::Result;
 use wasmtime::*;
 
-#[allow(clippy::needless_question_mark)]
 witx_bindgen_wasmtime::export!({
     src["component"]: "
         record SimpleValue {
