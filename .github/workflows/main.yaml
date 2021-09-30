@@ -1,4 +1,14 @@
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+# Cancel any in-flight jobs for the same PR/branch so there's only one active
+# at a time
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
@@ -11,7 +21,16 @@ jobs:
         with:
           toolchain: nightly
           target: wasm32-wasi
+          components: clippy, rustfmt
           default: true
+
+      - uses: actions-rs/clippy-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: --all-features
+
+      - name: format source code
+        run: cargo fmt -- --check
 
       - uses: actions-rs/cargo@v1
         with:
