@@ -3,6 +3,8 @@ cargo-features = ["per-package-target"]
 [workspace]
 members = [
     "crates/example-wasmtime-host",
+    "crates/example-wasmer-host",
     "crates/example-wasm",
     "crates/wasi-interface-gen",
 ]
+default-members = ["crates/example-wasmtime-host"]

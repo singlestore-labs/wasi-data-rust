@@ -5,6 +5,7 @@ This project implements portions of the [wasi-data](https://github.com/singlesto
 * [wasi-interface-gen](./crates/wasi-interface-gen): convenience macro for compiling rust functions and types to wasm modules using the canonical abi for wasi interface types.
 * [example-wasm](./crates/example-wasm): example crate using `wasi-interface-gen` to compile a wasm module with interface types.
 * [example-wasmtime-host](./crates/example-wasmtime-host): example of using wasmtime to load and run the `example-wasm` crate.
+* [example-wasmer-host](./crates/example-wasmer-host): example of using wasmer to load and run the `example-wasm` crate.
 
 ## devcontainer
 
@@ -28,6 +29,10 @@ A fantastic overview of the [interface types proposal](https://github.com/WebAss
 
 ```bash
 cargo run
+# also runnable with:
+# cargo run -p example-wasmtime-host
+# or
+# cargo run -p example-wasmer-host
 got: [SimpleValue { i: 20 }]
 got: [SplitOutput { c: "hello" }, SplitOutput { c: "how" }, SplitOutput { c: "are" }, SplitOutput { c: "you" }]
 got: [UserResult { id: 2, username: "lucy", email: "lucy@singlestore.com", phone: "555-123-4567" }, UserResult { id: 4, username: "bob", email: "bob@gmail.com", phone: "555-123-4567" }]

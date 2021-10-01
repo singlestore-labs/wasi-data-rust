@@ -27,7 +27,17 @@ jobs:
 
       - uses: actions-rs/cargo@v1
         with:
+          command: build
+
+      - uses: actions-rs/cargo@v1
+        with:
           command: run
+          args: -p example-wasmer-host
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: run
+          args: -p example-wasmtime-host
 
   check:
     runs-on: ubuntu-latest
