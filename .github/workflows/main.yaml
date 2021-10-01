@@ -13,7 +13,25 @@ concurrency:
 jobs:
   test:
     runs-on: ubuntu-latest
-    name: CI/CD
+    name: run tests
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          target: wasm32-wasi
+          default: true
+
+      - uses: Swatinem/rust-cache@v1
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: run
+
+  check:
+    runs-on: ubuntu-latest
+    name: run source checks
     steps:
       - uses: actions/checkout@v2
 
@@ -24,19 +42,14 @@ jobs:
           components: clippy, rustfmt
           default: true
 
+      - uses: Swatinem/rust-cache@v1
+
       - uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          args: --all-features
 
       - name: format source code
         uses: actions-rs/cargo@v1
         with:
           command: fmt
           args: -- --check
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: run
-
-      - uses: Swatinem/rust-cache@v1

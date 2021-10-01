@@ -1,7 +1,7 @@
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::visit::Visit;
-use syn::{parse_macro_input, parse_quote, Item, ItemMod};
+use syn::{parse_macro_input, parse_quote, Item, ItemMod, PathArguments};
 use witx2::abi::Direction;
 use witx2::Interface;
 use witx_bindgen_gen_core::{Files, Generator};
@@ -14,25 +14,48 @@ struct WitxBuilder {
 
 fn rust_type_to_wast(ty: &syn::Type) -> String {
     let type_name = match ty {
-        syn::Type::Path(x) => quote! {#x}.to_string(),
-        _ => panic!("unsupported: {:?}", ty),
+        syn::Type::Path(x) => {
+            let last_segment = x.path.segments.last().unwrap();
+            let type_param = match &last_segment.arguments {
+                PathArguments::AngleBracketed(ref params) => params.args.first(),
+                _ => None,
+            }
+            .and_then(|generic_arg| match generic_arg {
+                syn::GenericArgument::Type(ty) => Some(ty),
+                _ => None,
+            });
+
+            match last_segment.ident.to_string().as_str() {
+                "Vec" => format!(
+                    "list<{}>",
+                    type_param
+                        .map(rust_type_to_wast)
+                        .unwrap_or_else(|| "any".to_string())
+                ),
+                "Option" => format!(
+                    "option<{}>",
+                    type_param
+                        .map(rust_type_to_wast)
+                        .unwrap_or_else(|| "any".to_string())
+                ),
+                other => other.into(),
+            }
+        }
+        syn::Type::Reference(x) => rust_type_to_wast(&x.elem),
+        syn::Type::Slice(x) => {
+            let inner = rust_type_to_wast(&x.elem);
+            format!("list<{}>", inner)
+        }
+        _ => panic!("unsupported syn::Type: {:?}", ty),
     };
 
     match type_name.as_str() {
         "String" => "string",
-        "char" => "char",
-        "bool" => "bool",
         "i8" => "s8",
         "i16" => "s16",
         "i32" => "s32",
         "i64" => "s64",
-        "u8" => "u8",
-        "u16" => "u16",
-        "u32" => "u32",
-        "u64" => "u64",
-        "f32" => "f32",
-        "f64" => "f64",
-        _ => panic!("unsupported: {:?}", type_name),
+        other => other,
     }
     .to_string()
 }
@@ -43,7 +66,7 @@ impl Visit<'_> for WitxBuilder {
 
         let fields = match node.fields {
             syn::Fields::Named(ref fields) => &fields.named,
-            _ => panic!("unsupported"),
+            _ => panic!("struct must have named fields"),
         };
 
         for field in fields {
