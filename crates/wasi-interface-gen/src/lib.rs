@@ -29,13 +29,13 @@ fn rust_type_to_wast(ty: &syn::Type) -> String {
                 "Vec" => format!(
                     "list<{}>",
                     type_param
-                        .map(|x| rust_type_to_wast(x))
+                        .map(rust_type_to_wast)
                         .unwrap_or_else(|| "any".to_string())
                 ),
                 "Option" => format!(
                     "option<{}>",
                     type_param
-                        .map(|x| rust_type_to_wast(x))
+                        .map(rust_type_to_wast)
                         .unwrap_or_else(|| "any".to_string())
                 ),
                 other => other.into(),
