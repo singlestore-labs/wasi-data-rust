@@ -6,6 +6,19 @@ use wasmtime::*;
 
 witx_bindgen_wasmtime::export!({
     src["component"]: "
+        record SimpleString {
+            s: string,
+        }
+
+        record PolarityScores {
+            compound: f64,
+            positive: f64,
+            negative: f64,
+            neutral: f64,
+        }
+
+        sentiment: function(input: SimpleString) -> list<PolarityScores>
+
         record SimpleValue {
             i: s64,
         }
@@ -96,6 +109,30 @@ pub fn main() -> Result<()> {
 
     let (exports, _instance) =
         component::Component::instantiate(&mut store, &module, &mut linker, |cx| &mut cx.exports)?;
+
+    let comments = vec![
+        "I love singlestore!",
+        "ham is not a good sandwich",
+        "do you think we should go to the store today?",
+        "meetings are the favorite part of my day",
+        "bobs your uncle",
+        "I really hate the beach on a rainy day...",
+        "hello bob! you are looking great today!",
+    ];
+
+    for comment in comments {
+        let out = exports.sentiment(&mut store, component::SimpleString { s: comment })?[0];
+        match out.compound {
+            x if x > 0.05 => print!("'{}' is POSITIVE", comment),
+            x if x < -0.05 => print!("'{}' is NEGATIVE", comment),
+            _ => print!("'{}' is NEUTRAL", comment),
+        }
+        if out.positive > 0.75 || out.negative > 0.75 {
+            println!(" (polarized)");
+        } else {
+            println!();
+        }
+    }
 
     let input = component::SimpleValue { i: 10 };
     let out = exports.square(&mut store, input)?;

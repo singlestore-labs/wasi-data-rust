@@ -11,5 +11,9 @@ witx-bindgen-rust = { git = "https://github.com/bytecodealliance/witx-bindgen.gi
 wasi-interface-gen = { path = "../wasi-interface-gen" }
 hilbert = { git = "https://github.com/carlsverre/hilbert.git", branch = "wasm-support" }
 
+vader_sentiment = { git = "https://github.com/ckw017/vader-sentiment-rust" }
+lazy_static = "1.4.0"
+
+
 [lib]
 crate-type = ["cdylib"]

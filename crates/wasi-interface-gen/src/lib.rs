@@ -141,7 +141,11 @@ pub fn wasi_interface(_attr: TokenStream, item: TokenStream) -> TokenStream {
     content.1.push(use_witx_bindgen_rust);
     input.content = Some(content);
 
+    // Need to allow dead_code since the generated code doesn't always directly
+    // read the fields of user structs. For simple structs composed entirely of
+    // scalar types, they are mapped to the host ABI in one shot.
     quote! {
+        #[allow(dead_code)]
         #input
     }
     .into()
