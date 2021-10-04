@@ -97,6 +97,7 @@ impl Visit<'_> for WitxBuilder {
             let type_name = quote! {#ty}.to_string();
             let type_name = type_name.replace("Vec", "list");
             self.source.push_str(type_name.as_str());
+            self.source.push('\n');
         }
     }
 }

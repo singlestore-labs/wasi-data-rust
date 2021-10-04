@@ -17,7 +17,7 @@ witx_bindgen_wasmtime::export!({
             neutral: f64,
         }
 
-        sentiment: function(input: SimpleString) -> list<PolarityScores>
+        sentiment: function(input: SimpleString) -> PolarityScores
 
         record SimpleValue {
             i: s64,
@@ -121,7 +121,7 @@ pub fn main() -> Result<()> {
     ];
 
     for comment in comments {
-        let out = exports.sentiment(&mut store, component::SimpleString { s: comment })?[0];
+        let out = exports.sentiment(&mut store, component::SimpleString { s: comment })?;
         match out.compound {
             x if x > 0.05 => print!("'{}' is POSITIVE", comment),
             x if x < -0.05 => print!("'{}' is NEGATIVE", comment),
