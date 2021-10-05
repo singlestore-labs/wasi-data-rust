@@ -7,11 +7,6 @@ use witx2::Interface;
 use witx_bindgen_gen_core::{Files, Generator};
 use witx_bindgen_gen_rust_wasm::RustWasm;
 
-#[derive(Debug, Default)]
-struct WitxBuilder {
-    source: String,
-}
-
 fn rust_type_to_wast(ty: &syn::Type) -> String {
     let type_name = match ty {
         syn::Type::Path(x) => {
@@ -60,9 +55,15 @@ fn rust_type_to_wast(ty: &syn::Type) -> String {
     .to_string()
 }
 
+#[derive(Debug, Default)]
+struct WitxBuilder {
+    witx_source: String,
+    extra_rust: String,
+}
+
 impl Visit<'_> for WitxBuilder {
     fn visit_item_struct(&mut self, node: &'_ syn::ItemStruct) {
-        self.source.push_str(&format!("record {} {{\n", node.ident));
+        self.witx_source.push_str(&format!("record {} {{\n", node.ident));
 
         let fields = match node.fields {
             syn::Fields::Named(ref fields) => &fields.named,
@@ -70,34 +71,47 @@ impl Visit<'_> for WitxBuilder {
         };
 
         for field in fields {
-            self.source.push_str(&format!(
+            self.witx_source.push_str(&format!(
                 "  {}: {},\n",
                 field.ident.as_ref().unwrap(),
                 rust_type_to_wast(&field.ty),
             ));
         }
 
-        self.source.push_str("}\n");
+        self.witx_source.push_str("}\n");
     }
 
     fn visit_item_fn(&mut self, node: &'_ syn::ItemFn) {
         let sig = &node.sig;
 
-        self.source.push_str(&format!("{}: function(", sig.ident));
+        let mut witx_extra = String::new();
+
+        self.witx_source.push_str(&format!("{}: function(", sig.ident));
+
+        witx_extra.push_str(&format!("{}_vec: function(", sig.ident));
+        self.extra_rust.push_str(&format!("fn {}_vec(", sig.ident));
 
         sig.inputs.iter().for_each(|input| {
             if let syn::FnArg::Typed(x) = input {
-                self.source.push_str(quote! {#x}.to_string().as_str());
+                self.witx_source.push_str(quote! {#x}.to_string().as_str());
+
+                witx_extra.push_str("list<");
+                witx_extra.push_str(quote! {Vec<#x>}.to_string().as_str());
+                witx_extra.push('>');
+
+                self.extra_rust.push_str(quote! {Vec<#x>}.to_string().as_str());
             }
         });
 
-        self.source.push_str(") -> ");
+        self.witx_source.push_str(") -> ");
+        witx_extra.push_str(") -> ");
+        self.extra_rust.push_str(") -> ");
 
         if let syn::ReturnType::Type(_, ref ty) = sig.output {
             let type_name = quote! {#ty}.to_string();
             let type_name = type_name.replace("Vec", "list");
-            self.source.push_str(type_name.as_str());
-            self.source.push('\n');
+            self.witx_source.push_str(type_name.as_str());
+            self.witx_source.push('\n');
         }
     }
 }
@@ -109,7 +123,7 @@ pub fn wasi_interface(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let mut witx = WitxBuilder::default();
     witx.visit_item_mod(&input);
 
-    let iface = match Interface::parse("abi", &witx.source) {
+    let iface = match Interface::parse("abi", &witx.witx_source) {
         Ok(i) => i,
         Err(e) => panic!("{}", e),
     };
