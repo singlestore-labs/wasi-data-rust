@@ -12,10 +12,10 @@ syn = { version = "1.0", features = [
     "parsing",
 ] }
 quote = "1.0"
-witx-bindgen-rust = { git = "https://github.com/bytecodealliance/witx-bindgen.git" }
-witx-bindgen-gen-rust-wasm = { git = "https://github.com/bytecodealliance/witx-bindgen.git" }
-witx2 = { git = "https://github.com/bytecodealliance/witx-bindgen.git" }
-witx-bindgen-gen-core = { git = "https://github.com/bytecodealliance/witx-bindgen.git" }
+wai-bindgen-rust = { git = "https://github.com/bytecodealliance/wai-bindgen.git" }
+wai-bindgen-gen-rust-wasm = { git = "https://github.com/bytecodealliance/wai-bindgen.git" }
+wai-parser = { git = "https://github.com/bytecodealliance/wai-bindgen.git"}
+wai-bindgen-gen-core = { git = "https://github.com/bytecodealliance/wai-bindgen.git" }
 
 [lib]
 proc-macro = true

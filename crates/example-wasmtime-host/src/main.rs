@@ -4,7 +4,7 @@
 use anyhow::Result;
 use wasmtime::*;
 
-witx_bindgen_wasmtime::export!({
+wai_bindgen_wasmtime::import!({
     src["component"]: "
         record SimpleString {
             s: string,
@@ -17,7 +17,7 @@ witx_bindgen_wasmtime::export!({
             neutral: f64,
         }
 
-        sentiment: function(input: SimpleString) -> list<PolarityScores>
+        sentiment: function(input: SimpleString) -> PolarityScores
 
         record SimpleValue {
             i: s64,
@@ -25,16 +25,16 @@ witx_bindgen_wasmtime::export!({
 
         square: function(input: SimpleValue) -> list<SimpleValue>
 
-        record SplitInput {
+        record TokenizeInput {
             s: string,
             delimiter: string,
         }
 
-        record SplitOutput {
+        record TokenizeOutput {
             c: string,
         }
 
-        split: function(input: SplitInput) -> list<SplitOutput>
+        tokenize: function(input: TokenizeInput) -> list<TokenizeOutput>
 
         record User {
             id: s64,
@@ -84,7 +84,7 @@ pub fn main() -> Result<()> {
     // Compile the component wasm module
     let module = Module::from_file(&engine, "target/wasm32-wasi/debug/example_wasm.wasm")?;
 
-    // Add the component's WASI/witx exports to the linker
+    // Add the component's WASI/wai exports to the linker
     // For host-provided functions it's recommended to use a `Linker` which does
     // name-based resolution of functions.
     let mut linker = Linker::<Context>::new(&engine);
@@ -121,7 +121,7 @@ pub fn main() -> Result<()> {
     ];
 
     for comment in comments {
-        let out = exports.sentiment(&mut store, component::SimpleString { s: comment })?[0];
+        let out = exports.sentiment(&mut store, component::SimpleString { s: comment })?;
         match out.compound {
             x if x > 0.05 => print!("'{}' is POSITIVE", comment),
             x if x < -0.05 => print!("'{}' is NEGATIVE", comment),
@@ -138,11 +138,11 @@ pub fn main() -> Result<()> {
     let out = exports.square(&mut store, input)?;
     println!("got: {:?}", out);
 
-    let input = component::SplitInput {
+    let input = component::TokenizeInput {
         s: "hello, how, are, you",
         delimiter: ", ",
     };
-    let out = exports.split(&mut store, input)?;
+    let out = exports.tokenize(&mut store, input)?;
 
     println!("got: {:?}", out);
 

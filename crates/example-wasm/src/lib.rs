@@ -15,19 +15,19 @@ mod component {
         neutral: f64,
     }
 
-    fn sentiment(input: SimpleString) -> Vec<PolarityScores> {
+    fn sentiment(input: SimpleString) -> PolarityScores {
         lazy_static::lazy_static! {
             static ref ANALYZER: vader_sentiment::SentimentIntensityAnalyzer<'static> =
                 vader_sentiment::SentimentIntensityAnalyzer::new();
         }
 
         let scores = ANALYZER.polarity_scores(input.s.as_str());
-        vec![PolarityScores {
+        PolarityScores {
             compound: scores["compound"],
             positive: scores["pos"],
             negative: scores["neg"],
             neutral: scores["neu"],
-        }]
+        }
     }
 
     struct SimpleValue {
@@ -40,20 +40,20 @@ mod component {
         }]
     }
 
-    struct SplitInput {
+    struct TokenizeInput {
         s: String,
         delimiter: String,
     }
 
-    struct SplitOutput {
+    struct TokenizeOutput {
         c: String,
     }
 
-    fn split(input: SplitInput) -> Vec<SplitOutput> {
+    fn tokenize(input: TokenizeInput) -> Vec<TokenizeOutput> {
         input
             .s
             .split(&input.delimiter)
-            .map(|s| SplitOutput { c: s.to_string() })
+            .map(|s| TokenizeOutput { c: s.to_string() })
             .collect()
     }
 

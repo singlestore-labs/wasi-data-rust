@@ -13,16 +13,16 @@ witx_bindgen_wasmer::export!({
 
         square: function(input: SimpleValue) -> list<SimpleValue>
 
-        record SplitInput {
+        record TokenizeInput {
             s: string,
             delimiter: string,
         }
 
-        record SplitOutput {
+        record TokenizeOutput {
             c: string,
         }
 
-        split: function(input: SplitInput) -> list<SplitOutput>
+        tokenize: function(input: TokenizeInput) -> list<TokenizeOutput>
 
         record User {
             id: s64,
@@ -67,18 +67,18 @@ pub fn main() -> Result<()> {
     let mut wasi_env = WasiState::new("hello").finalize()?;
     let mut imports = wasi_env.import_object(&module)?;
 
-    // Instantiate the module and extract a witx exported interface to it.
+    // Instantiate the module and extract a wai exported interface to it.
     let (exports, _instance) = component::Component::instantiate(&store, &module, &mut imports)?;
 
     let input = component::SimpleValue { i: 10 };
     let out = exports.square(input)?;
     println!("got: {:?}", out);
 
-    let input = component::SplitInput {
+    let input = component::TokenizeInput {
         s: "hello, how, are, you",
         delimiter: ", ",
     };
-    let out = exports.split(input)?;
+    let out = exports.tokenize(input)?;
 
     println!("got: {:?}", out);
 

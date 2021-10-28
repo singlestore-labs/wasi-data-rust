@@ -34,6 +34,6 @@ cargo run
 # or
 # cargo run -p example-wasmer-host
 got: [SimpleValue { i: 20 }]
-got: [SplitOutput { c: "hello" }, SplitOutput { c: "how" }, SplitOutput { c: "are" }, SplitOutput { c: "you" }]
+got: [TokenizeOutput { c: "hello" }, TokenizeOutput { c: "how" }, TokenizeOutput { c: "are" }, TokenizeOutput { c: "you" }]
 got: [UserResult { id: 2, username: "lucy", email: "lucy@singlestore.com", phone: "555-123-4567" }, UserResult { id: 4, username: "bob", email: "bob@gmail.com", phone: "555-123-4567" }]
 ```

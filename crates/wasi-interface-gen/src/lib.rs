@@ -2,13 +2,12 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::visit::Visit;
 use syn::{parse_macro_input, parse_quote, Item, ItemMod, PathArguments};
-use witx2::abi::Direction;
-use witx2::Interface;
-use witx_bindgen_gen_core::{Files, Generator};
-use witx_bindgen_gen_rust_wasm::RustWasm;
+use wai_bindgen_gen_core::{Direction, Files, Generator};
+use wai_bindgen_gen_rust_wasm::RustWasm;
+use wai_parser::Interface;
 
 #[derive(Debug, Default)]
-struct WitxBuilder {
+struct WaiBuilder {
     source: String,
 }
 
@@ -60,7 +59,7 @@ fn rust_type_to_wast(ty: &syn::Type) -> String {
     .to_string()
 }
 
-impl Visit<'_> for WitxBuilder {
+impl Visit<'_> for WaiBuilder {
     fn visit_item_struct(&mut self, node: &'_ syn::ItemStruct) {
         self.source.push_str(&format!("record {} {{\n", node.ident));
 
@@ -80,6 +79,16 @@ impl Visit<'_> for WitxBuilder {
         self.source.push_str("}\n");
     }
 
+    fn visit_item_enum(&mut self, node: &syn::ItemEnum) {
+        self.source.push_str(&format!("enum {} {{\n", node.ident));
+
+        for v in &node.variants {
+            self.source.push_str(&format!("{},\n", &v.ident.to_string()));
+        } 
+
+        self.source.push_str("}\n");
+    }
+
     fn visit_item_fn(&mut self, node: &'_ syn::ItemFn) {
         let sig = &node.sig;
 
@@ -91,13 +100,15 @@ impl Visit<'_> for WitxBuilder {
             }
         });
 
-        self.source.push_str(") -> ");
+        self.source.push(')');
 
         if let syn::ReturnType::Type(_, ref ty) = sig.output {
+            self.source.push_str(" -> ");
             let type_name = quote! {#ty}.to_string();
             let type_name = type_name.replace("Vec", "list");
             self.source.push_str(type_name.as_str());
         }
+        self.source.push('\n');
     }
 }
 
@@ -105,10 +116,11 @@ impl Visit<'_> for WitxBuilder {
 pub fn wasi_interface(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let mut input = parse_macro_input!(item as ItemMod);
 
-    let mut witx = WitxBuilder::default();
-    witx.visit_item_mod(&input);
+    let mut wai = WaiBuilder::default();
+    wai.visit_item_mod(&input);
+    wai.source.push_str("\nwai_source: function() -> string\n");
 
-    let iface = match Interface::parse("abi", &witx.source) {
+    let iface = match Interface::parse("abi", &wai.source) {
         Ok(i) => i,
         Err(e) => panic!("{}", e),
     };
@@ -131,14 +143,22 @@ pub fn wasi_interface(_attr: TokenStream, item: TokenStream) -> TokenStream {
         _ => None,
     });
 
-    let use_witx_bindgen_rust = parse_quote! {
+    let use_wai_bindgen_rust = parse_quote! {
         #[allow(unused_imports)]
-        use witx_bindgen_rust;
+        use wai_bindgen_rust;
+    };
+
+    let wai_source = &wai.source;
+    let wai_export_sym = parse_quote! {
+        fn wai_source() -> String {
+            #wai_source.to_string()
+        }
     };
 
     let mut content = input.content.unwrap();
     content.1.extend(exports);
-    content.1.push(use_witx_bindgen_rust);
+    content.1.push(use_wai_bindgen_rust);
+    content.1.push(wai_export_sym);
     input.content = Some(content);
 
     // Need to allow dead_code since the generated code doesn't always directly
