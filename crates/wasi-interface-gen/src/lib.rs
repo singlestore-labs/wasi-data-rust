@@ -11,6 +11,18 @@ struct WaiBuilder {
     source: String,
 }
 
+fn rust_type_name_to_wast(type_name: &str) -> String {
+    match type_name {
+        "String" => "string",
+        "i8" => "s8",
+        "i16" => "s16",
+        "i32" => "s32",
+        "i64" => "s64",
+        other => other,
+    }
+    .to_string()
+}
+
 fn rust_type_to_wast(ty: &syn::Type) -> String {
     let type_name = match ty {
         syn::Type::Path(x) => {
@@ -48,15 +60,7 @@ fn rust_type_to_wast(ty: &syn::Type) -> String {
         _ => panic!("unsupported syn::Type: {:?}", ty),
     };
 
-    match type_name.as_str() {
-        "String" => "string",
-        "i8" => "s8",
-        "i16" => "s16",
-        "i32" => "s32",
-        "i64" => "s64",
-        other => other,
-    }
-    .to_string()
+    rust_type_name_to_wast(type_name.as_str())
 }
 
 impl Visit<'_> for WaiBuilder {
@@ -93,10 +97,14 @@ impl Visit<'_> for WaiBuilder {
         let sig = &node.sig;
 
         self.source.push_str(&format!("{}: function(", sig.ident));
-
         sig.inputs.iter().for_each(|input| {
             if let syn::FnArg::Typed(x) = input {
-                self.source.push_str(quote! {#x}.to_string().as_str());
+                let pat = &x.pat;
+                let ty = &x.ty;
+                let pat_name = quote! {#pat}.to_string();
+                let type_name = quote! {#ty}.to_string();
+                let type_name = rust_type_name_to_wast(type_name.as_str());
+                self.source.push_str(&format!("{}: {}", &pat_name, &type_name));
             }
         });
 
@@ -106,6 +114,7 @@ impl Visit<'_> for WaiBuilder {
             self.source.push_str(" -> ");
             let type_name = quote! {#ty}.to_string();
             let type_name = type_name.replace("Vec", "list");
+            let type_name = rust_type_name_to_wast(type_name.as_str());
             self.source.push_str(type_name.as_str());
         }
         self.source.push('\n');
@@ -117,8 +126,10 @@ pub fn wasi_interface(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let mut input = parse_macro_input!(item as ItemMod);
 
     let mut wai = WaiBuilder::default();
+    //wai.source.push_str("type i32 = s32\n");
     wai.visit_item_mod(&input);
     wai.source.push_str("\nwai_source: function() -> string\n");
+    //println!("WAI_SOURCE={}", &wai.source);
 
     let iface = match Interface::parse("abi", &wai.source) {
         Ok(i) => i,

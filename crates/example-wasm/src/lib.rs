@@ -4,6 +4,10 @@ use wasi_interface_gen::wasi_interface;
 #[wasi_interface]
 mod component {
 
+    fn passthru(input: String) -> String {
+        input
+    }
+
     struct SimpleString {
         s: String,
     }
