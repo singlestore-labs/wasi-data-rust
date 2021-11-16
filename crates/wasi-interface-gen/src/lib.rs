@@ -128,8 +128,11 @@ pub fn wasi_interface(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let mut wai = WaiBuilder::default();
     //wai.source.push_str("type i32 = s32\n");
     wai.visit_item_mod(&input);
-    wai.source.push_str("\nwai_source: function() -> string\n");
-    //println!("WAI_SOURCE={}", &wai.source);
+    if cfg!(feature = "embed-wai") {
+        wai.source.push_str("\nwai_source_get: function() -> string\n");
+        wai.source.push_str("\nwai_source_print: function()\n");
+        //println!("WAI_SOURCE={}", &wai.source);
+    }
 
     let iface = match Interface::parse("abi", &wai.source) {
         Ok(i) => i,
@@ -159,17 +162,30 @@ pub fn wasi_interface(_attr: TokenStream, item: TokenStream) -> TokenStream {
         use wai_bindgen_rust;
     };
 
-    let wai_source = &wai.source;
-    let wai_export_sym = parse_quote! {
-        fn wai_source() -> String {
-            #wai_source.to_string()
+    let wai_source = &wai.source.as_str();
+    let wai_source_const: Item = parse_quote! {
+        const _WAI_SOURCE_: &str = #wai_source;
+    };
+    let wai_source_getter = parse_quote! {
+        fn wai_source_get() -> String {
+            _WAI_SOURCE_.to_string()
+        }
+    };
+    let wai_source_printer = parse_quote! {
+        fn wai_source_print() {
+            println!("{}", _WAI_SOURCE_.to_string());
         }
     };
 
     let mut content = input.content.unwrap();
     content.1.extend(exports);
     content.1.push(use_wai_bindgen_rust);
-    content.1.push(wai_export_sym);
+
+    if cfg!(feature = "embed-wai") {
+        content.1.push(wai_source_const);
+        content.1.push(wai_source_getter);
+        content.1.push(wai_source_printer);
+    }
     input.content = Some(content);
 
     // Need to allow dead_code since the generated code doesn't always directly

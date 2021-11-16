@@ -19,3 +19,6 @@ wai-bindgen-gen-core = { git = "https://github.com/bytecodealliance/wai-bindgen.
 
 [lib]
 proc-macro = true
+
+[features]
+embed-wai = []

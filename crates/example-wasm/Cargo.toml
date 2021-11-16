@@ -8,7 +8,7 @@ forced-target = "wasm32-wasi"
 
 [dependencies]
 wai-bindgen-rust = { git = "https://github.com/bytecodealliance/wai-bindgen.git" }
-wasi-interface-gen = { path = "../wasi-interface-gen" }
+wasi-interface-gen = { path = "../wasi-interface-gen" , features = ["embed-wai"] }
 hilbert = { git = "https://github.com/carlsverre/hilbert.git", branch = "wasm-support" }
 
 vader_sentiment = { git = "https://github.com/ckw017/vader-sentiment-rust" }
