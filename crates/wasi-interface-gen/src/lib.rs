@@ -104,7 +104,7 @@ impl Visit<'_> for WaiBuilder {
                 let pat_name = quote! {#pat}.to_string();
                 let type_name = quote! {#ty}.to_string();
                 let type_name = rust_type_name_to_wast(type_name.as_str());
-                self.source.push_str(&format!("{}: {}", &pat_name, &type_name));
+                self.source.push_str(&format!("{}: {}, ", &pat_name, &type_name));
             }
         });
 
