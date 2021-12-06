@@ -4,7 +4,7 @@
 use anyhow::Result;
 use wasmtime::*;
 
-wai_bindgen_wasmtime::import!({
+wit_bindgen_wasmtime::import!({
     src["component"]: "
         record SimpleString {
             s: string,
@@ -84,7 +84,7 @@ pub fn main() -> Result<()> {
     // Compile the component wasm module
     let module = Module::from_file(&engine, "target/wasm32-wasi/debug/example_wasm.wasm")?;
 
-    // Add the component's WASI/wai exports to the linker
+    // Add the component's WASI/wit exports to the linker
     // For host-provided functions it's recommended to use a `Linker` which does
     // name-based resolution of functions.
     let mut linker = Linker::<Context>::new(&engine);

@@ -7,5 +7,5 @@ edition = "2018"
 wasmtime = "0.31.0"
 wasmtime-wasi = "0.31.0"
 anyhow = "1.0"
-wai-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wai-bindgen.git"}
+wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen.git"}
 

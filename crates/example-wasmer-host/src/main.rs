@@ -67,7 +67,7 @@ pub fn main() -> Result<()> {
     let mut wasi_env = WasiState::new("hello").finalize()?;
     let mut imports = wasi_env.import_object(&module)?;
 
-    // Instantiate the module and extract a wai exported interface to it.
+    // Instantiate the module and extract a wit exported interface to it.
     let (exports, _instance) = component::Component::instantiate(&store, &module, &mut imports)?;
 
     let input = component::SimpleValue { i: 10 };

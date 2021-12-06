@@ -2,12 +2,12 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::visit::Visit;
 use syn::{parse_macro_input, parse_quote, Item, ItemMod, PathArguments};
-use wai_bindgen_gen_core::{Direction, Files, Generator};
-use wai_bindgen_gen_rust_wasm::RustWasm;
-use wai_parser::Interface;
+use wit_bindgen_gen_core::{Direction, Files, Generator};
+use wit_bindgen_gen_rust_wasm::RustWasm;
+use wit_parser::Interface;
 
 #[derive(Debug, Default)]
-struct WaiBuilder {
+struct WitBuilder {
     source: String,
 }
 
@@ -63,7 +63,7 @@ fn rust_type_to_wast(ty: &syn::Type) -> String {
     rust_type_name_to_wast(type_name.as_str())
 }
 
-impl Visit<'_> for WaiBuilder {
+impl Visit<'_> for WitBuilder {
     fn visit_item_struct(&mut self, node: &'_ syn::ItemStruct) {
         self.source.push_str(&format!("record {} {{\n", node.ident));
 
@@ -125,16 +125,16 @@ impl Visit<'_> for WaiBuilder {
 pub fn wasi_interface(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let mut input = parse_macro_input!(item as ItemMod);
 
-    let mut wai = WaiBuilder::default();
-    //wai.source.push_str("type i32 = s32\n");
-    wai.visit_item_mod(&input);
-    if cfg!(feature = "embed-wai") {
-        wai.source.push_str("\nwai_source_get: function() -> string\n");
-        wai.source.push_str("\nwai_source_print: function()\n");
-        //println!("WAI_SOURCE={}", &wai.source);
+    let mut wit = WitBuilder::default();
+    //wit.source.push_str("type i32 = s32\n");
+    wit.visit_item_mod(&input);
+    if cfg!(feature = "embed-wit") {
+        wit.source.push_str("\nwit_source_get: function() -> string\n");
+        wit.source.push_str("\nwit_source_print: function()\n");
+        //println!("WIT_SOURCE={}", &wit.source);
     }
 
-    let iface = match Interface::parse("abi", &wai.source) {
+    let iface = match Interface::parse("abi", &wit.source) {
         Ok(i) => i,
         Err(e) => panic!("{}", e),
     };
@@ -157,34 +157,34 @@ pub fn wasi_interface(_attr: TokenStream, item: TokenStream) -> TokenStream {
         _ => None,
     });
 
-    let use_wai_bindgen_rust = parse_quote! {
+    let use_wit_bindgen_rust = parse_quote! {
         #[allow(unused_imports)]
-        use wai_bindgen_rust;
+        use wit_bindgen_rust;
     };
 
-    let wai_source = &wai.source.as_str();
-    let wai_source_const: Item = parse_quote! {
-        const _WAI_SOURCE_: &str = #wai_source;
+    let wit_source = &wit.source.as_str();
+    let wit_source_const: Item = parse_quote! {
+        const _WIT_SOURCE_: &str = #wit_source;
     };
-    let wai_source_getter = parse_quote! {
-        fn wai_source_get() -> String {
-            _WAI_SOURCE_.to_string()
+    let wit_source_getter = parse_quote! {
+        fn wit_source_get() -> String {
+            _WIT_SOURCE_.to_string()
         }
     };
-    let wai_source_printer = parse_quote! {
-        fn wai_source_print() {
-            println!("{}", _WAI_SOURCE_.to_string());
+    let wit_source_printer = parse_quote! {
+        fn wit_source_print() {
+            println!("{}", _WIT_SOURCE_.to_string());
         }
     };
 
     let mut content = input.content.unwrap();
     content.1.extend(exports);
-    content.1.push(use_wai_bindgen_rust);
+    content.1.push(use_wit_bindgen_rust);
 
-    if cfg!(feature = "embed-wai") {
-        content.1.push(wai_source_const);
-        content.1.push(wai_source_getter);
-        content.1.push(wai_source_printer);
+    if cfg!(feature = "embed-wit") {
+        content.1.push(wit_source_const);
+        content.1.push(wit_source_getter);
+        content.1.push(wit_source_printer);
     }
     input.content = Some(content);
 
