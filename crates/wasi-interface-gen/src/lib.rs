@@ -1,3 +1,4 @@
+use heck::*;
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::visit::Visit;
@@ -28,13 +29,17 @@ fn rust_type_to_wast(ty: &syn::Type) -> String {
         syn::Type::Path(x) => {
             let last_segment = x.path.segments.last().unwrap();
             let type_param = match &last_segment.arguments {
-                PathArguments::AngleBracketed(ref params) => params.args.first(),
+                PathArguments::AngleBracketed(ref params) => {
+                    params.args.first()
+                },
                 _ => None,
             }
             .and_then(|generic_arg| match generic_arg {
                 syn::GenericArgument::Type(ty) => Some(ty),
                 _ => None,
             });
+
+            //println!("    LASTSEG-->{:?}, {:?}", &last_segment.ident.to_string().as_str(), &type_param);
 
             match last_segment.ident.to_string().as_str() {
                 "Vec" => format!(
@@ -49,10 +54,14 @@ fn rust_type_to_wast(ty: &syn::Type) -> String {
                         .map(rust_type_to_wast)
                         .unwrap_or_else(|| "any".to_string())
                 ),
-                other => other.into(),
+                other => {
+                    other.to_kebab_case()
+                },
             }
         }
-        syn::Type::Reference(x) => rust_type_to_wast(&x.elem),
+        syn::Type::Reference(x) => {
+            rust_type_to_wast(&x.elem)
+        },
         syn::Type::Slice(x) => {
             let inner = rust_type_to_wast(&x.elem);
             format!("list<{}>", inner)
@@ -65,7 +74,8 @@ fn rust_type_to_wast(ty: &syn::Type) -> String {
 
 impl Visit<'_> for WitBuilder {
     fn visit_item_struct(&mut self, node: &'_ syn::ItemStruct) {
-        self.source.push_str(&format!("record {} {{\n", node.ident));
+        let ident_kebab = node.ident.to_string().to_kebab_case();
+        self.source.push_str(&format!("record {} {{\n", ident_kebab));
 
         let fields = match node.fields {
             syn::Fields::Named(ref fields) => &fields.named,
@@ -73,9 +83,10 @@ impl Visit<'_> for WitBuilder {
         };
 
         for field in fields {
+            let field_kebab = field.ident.as_ref().unwrap().to_string().to_kebab_case();
             self.source.push_str(&format!(
                 "  {}: {},\n",
-                field.ident.as_ref().unwrap(),
+                field_kebab,
                 rust_type_to_wast(&field.ty),
             ));
         }
@@ -96,14 +107,14 @@ impl Visit<'_> for WitBuilder {
     fn visit_item_fn(&mut self, node: &'_ syn::ItemFn) {
         let sig = &node.sig;
 
-        self.source.push_str(&format!("{}: function(", sig.ident));
+        let name_kebab = sig.ident.to_string().to_kebab_case();
+        self.source.push_str(&format!("{}: function(", name_kebab));
         sig.inputs.iter().for_each(|input| {
             if let syn::FnArg::Typed(x) = input {
                 let pat = &x.pat;
                 let ty = &x.ty;
-                let pat_name = quote! {#pat}.to_string();
-                let type_name = quote! {#ty}.to_string();
-                let type_name = rust_type_name_to_wast(type_name.as_str());
+                let pat_name = quote! {#pat}.to_string().to_kebab_case();
+                let type_name = rust_type_to_wast(ty);
                 self.source.push_str(&format!("{}: {}, ", &pat_name, &type_name));
             }
         });
@@ -112,9 +123,8 @@ impl Visit<'_> for WitBuilder {
 
         if let syn::ReturnType::Type(_, ref ty) = sig.output {
             self.source.push_str(" -> ");
-            let type_name = quote! {#ty}.to_string();
+            let type_name = rust_type_to_wast(ty);
             let type_name = type_name.replace("Vec", "list");
-            let type_name = rust_type_name_to_wast(type_name.as_str());
             self.source.push_str(type_name.as_str());
         }
         self.source.push('\n');
@@ -126,11 +136,10 @@ pub fn wasi_interface(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let mut input = parse_macro_input!(item as ItemMod);
 
     let mut wit = WitBuilder::default();
-    //wit.source.push_str("type i32 = s32\n");
     wit.visit_item_mod(&input);
     if cfg!(feature = "embed-wit") {
-        wit.source.push_str("\nwit_source_get: function() -> string\n");
-        wit.source.push_str("\nwit_source_print: function()\n");
+        wit.source.push_str("\nwit-source-get: function() -> string\n");
+        wit.source.push_str("\nwit-source-print: function()\n");
         //println!("WIT_SOURCE={}", &wit.source);
     }
 

@@ -6,57 +6,57 @@ use wasmtime::*;
 
 wit_bindgen_wasmtime::import!({
     src["component"]: "
-        record SimpleString {
+        record simple-string {
             s: string,
         }
 
-        record PolarityScores {
+        record polarity-scores {
             compound: f64,
             positive: f64,
             negative: f64,
             neutral: f64,
         }
 
-        sentiment: function(input: SimpleString) -> PolarityScores
+        sentiment: function(input: simple-string) -> polarity-scores
 
-        record SimpleValue {
+        record simple-value {
             i: s64,
         }
 
-        square: function(input: SimpleValue) -> list<SimpleValue>
+        square: function(input: simple-value) -> list<simple-value>
 
-        record TokenizeInput {
+        record tokenize-input {
             s: string,
             delimiter: string,
         }
 
-        record TokenizeOutput {
+        record tokenize-output {
             c: string,
         }
 
-        tokenize: function(input: TokenizeInput) -> list<TokenizeOutput>
+        tokenize: function(input: tokenize-input) -> list<tokenize-output>
 
-        record User {
+        record user {
             id: s64,
             username: string,
             email: string,
             phone: string,
         }
 
-        filter_out_bad_users: function(input: User) -> list<User>
+        filter-out-bad-users: function(input: user) -> list<user>
 
-        record HilbertInput {
+        record hilbert-input {
             vec: list<u8>,
-            min_value: f64,
-            max_value: f64,
+            min-value: f64,
+            max-value: f64,
             scale: f64,
         }
 
-        record HilbertOutput {
+        record hilbert-output {
             idx: string,
         }
 
-        hilbert_encode: function(input: HilbertInput) -> list<HilbertOutput>
+        hilbert-encode: function(input: hilbert-input) -> list<hilbert-output>
     "
 });
 

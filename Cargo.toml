@@ -8,3 +8,4 @@ members = [
     "crates/wasi-interface-gen",
 ]
 default-members = ["crates/example-wasmtime-host"]
+
