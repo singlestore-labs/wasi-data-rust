@@ -165,6 +165,14 @@ pub fn wasi_interface(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let exports = abi_mod_contents.1.iter().filter_map(|item| match item {
         Item::Fn(_) => Some(item.clone()),
         Item::Static(_) => Some(item.clone()),
+        Item::Struct(s) => {
+            let struct_name = s.ident.to_string();
+            if struct_name == "RetArea" {
+                Some(item.clone())
+            } else {
+                None
+            }
+        },
         _ => None,
     });
 
