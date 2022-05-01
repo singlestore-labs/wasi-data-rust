@@ -19,6 +19,8 @@ fn rust_type_name_to_wast(type_name: &str) -> String {
         "i16" => "s16",
         "i32" => "s32",
         "i64" => "s64",
+        "f32" => "float32",
+        "f64" => "float64",
         other => other,
     }
     .to_string()
