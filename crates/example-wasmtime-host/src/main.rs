@@ -11,10 +11,10 @@ wit_bindgen_wasmtime::import!({
         }
 
         record polarity-scores {
-            compound: f64,
-            positive: f64,
-            negative: f64,
-            neutral: f64,
+            compound: float64,
+            positive: float64,
+            negative: float64,
+            neutral: float64,
         }
 
         sentiment: function(input: simple-string) -> polarity-scores
@@ -47,9 +47,9 @@ wit_bindgen_wasmtime::import!({
 
         record hilbert-input {
             vec: list<u8>,
-            min-value: f64,
-            max-value: f64,
-            scale: f64,
+            min-value: float64,
+            max-value: float64,
+            scale: float64,
         }
 
         record hilbert-output {
