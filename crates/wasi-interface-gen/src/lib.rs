@@ -128,6 +128,7 @@ impl Visit<'_> for WitBuilder {
             let type_name = rust_type_to_wast(ty);
             let type_name = type_name.replace("Vec", "list");
             self.source.push_str(type_name.as_str());
+            self.source.push('\n');
         }
         self.source.push('\n');
     }
