@@ -17,13 +17,13 @@ wit_bindgen_wasmtime::import!({
             neutral: float64,
         }
 
-        sentiment: function(input: simple-string) -> polarity-scores
+        sentiment: func(input: simple-string) -> polarity-scores
 
         record simple-value {
             i: s64,
         }
 
-        square: function(input: simple-value) -> list<simple-value>
+        square: func(input: simple-value) -> list<simple-value>
 
         record tokenize-input {
             s: string,
@@ -34,7 +34,7 @@ wit_bindgen_wasmtime::import!({
             c: string,
         }
 
-        tokenize: function(input: tokenize-input) -> list<tokenize-output>
+        tokenize: func(input: tokenize-input) -> list<tokenize-output>
 
         record user {
             id: s64,
@@ -43,7 +43,7 @@ wit_bindgen_wasmtime::import!({
             phone: string,
         }
 
-        filter-out-bad-users: function(input: user) -> list<user>
+        filter-out-bad-users: func(input: user) -> list<user>
 
         record hilbert-input {
             vec: list<u8>,
@@ -56,7 +56,7 @@ wit_bindgen_wasmtime::import!({
             idx: string,
         }
 
-        hilbert-encode: function(input: hilbert-input) -> list<hilbert-output>
+        hilbert-encode: func(input: hilbert-input) -> list<hilbert-output>
     "
 });
 

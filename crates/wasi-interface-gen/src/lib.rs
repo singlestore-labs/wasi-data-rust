@@ -106,7 +106,7 @@ impl Visit<'_> for WitBuilder {
         let sig = &node.sig;
 
         let name_kebab = sig.ident.to_string().to_kebab_case();
-        self.source.push_str(&format!("{}: function(", name_kebab));
+        self.source.push_str(&format!("{}: func(", name_kebab));
         sig.inputs.iter().for_each(|input| {
             if let syn::FnArg::Typed(x) = input {
                 let pat = &x.pat;
@@ -139,8 +139,8 @@ pub fn wasi_interface(_attr: TokenStream, item: TokenStream) -> TokenStream {
     wit.visit_item_mod(&input);
     if cfg!(feature = "embed-wit") {
         wit.source
-            .push_str("\nwit-source-get: function() -> string\n");
-        wit.source.push_str("\nwit-source-print: function()\n");
+            .push_str("\nwit-source-get: func() -> string\n");
+        wit.source.push_str("\nwit-source-print: func()\n");
         //println!("WIT_SOURCE={}", &wit.source);
     }
 
